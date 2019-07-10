@@ -12,8 +12,15 @@ import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.ExampleSubsystem;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.can.*;
+
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,6 +30,12 @@ import frc.robot.subsystems.ExampleSubsystem;
  * project.
  */
 public class Robot extends TimedRobot {
+
+  TalonSRX myTalon = new TalonSRX(1);
+
+  XboxController myXbox = new XboxController(0);
+
+
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
 
@@ -36,9 +49,10 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_oi = new OI();
-    m_chooser.setDefaultOption("Default Auto", new ExampleCommand());
+    m_chooser.setDefaultOption("Default Auto", new DriveCommand());
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
+
   }
 
   /**
@@ -109,9 +123,14 @@ public class Robot extends TimedRobot {
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
     // this line or comment it out.
-    if (m_autonomousCommand != null) {
+
+    /*if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+*/
+
+    myTalon.set(ControlMode.PercentOutput, 0);
+
   }
 
   /**
@@ -120,6 +139,17 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
+
+    double XboxPosY = myXbox.getY(Hand.kLeft);
+    System.out.println(XboxPosY);
+
+    if (XboxPosY > 0.07 || XboxPosY < -0.07) {
+      myTalon.set(ControlMode.PercentOutput, XboxPosY);
+      
+    }
+    else {
+      myTalon.set(ControlMode.PercentOutput, 0);
+        }
   }
 
   /**
