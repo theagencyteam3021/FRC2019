@@ -11,10 +11,10 @@ import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
 /**
- * An example command.  You can replace me with your own command.
+ * An example command.  You can replace me with your own command. OK sounds good
  */
-public class ExampleCommand extends Command {
-  public ExampleCommand() {
+public class DriveCommand extends Command {
+  public DriveCommand() {
     // Use requires() here to declare subsystem dependencies
     requires(Robot.m_subsystem);
   }
