@@ -21,8 +21,6 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
-import java.lang.*;
-
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -133,7 +131,7 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 */
-
+    System.out.println("Running TeleopInit");
     DriveLeft1.set(ControlMode.PercentOutput, 0);
 
   }
