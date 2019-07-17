@@ -31,9 +31,9 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
  */
 public class Robot extends TimedRobot {
 
-  TalonSRX myTalon = new TalonSRX(1);
+  TalonSRX DriveLeft1 = new TalonSRX(1);
 
-  XboxController myXbox = new XboxController(0);
+  XboxController DriverInputPrimary = new XboxController(0);
 
 
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
@@ -129,7 +129,7 @@ public class Robot extends TimedRobot {
     }
 */
 
-    myTalon.set(ControlMode.PercentOutput, 0);
+    DriveLeft1.set(ControlMode.PercentOutput, 0);
 
   }
 
@@ -140,15 +140,15 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
-    double XboxPosY = myXbox.getY(Hand.kLeft);
+    double XboxPosY = DriverInputPrimary.getY(Hand.kLeft);
     System.out.println(XboxPosY);
 
     if (XboxPosY > 0.07 || XboxPosY < -0.07) {
-      myTalon.set(ControlMode.PercentOutput, XboxPosY);
+      DriveLeft1.set(ControlMode.PercentOutput, XboxPosY);
       
     }
     else {
-      myTalon.set(ControlMode.PercentOutput, 0);
+      DriveLeft1.set(ControlMode.PercentOutput, 0);
         }
   }
 
