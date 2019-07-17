@@ -33,6 +33,7 @@ import java.lang.*;
 public class Robot extends TimedRobot {
 
   TalonSRX DriveLeft1 = new TalonSRX(1);
+  TalonSRX DriveLeft2 = new TalonSRX(2);
 
   XboxController DriverInputPrimary = new XboxController(0);
 
@@ -51,6 +52,9 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_oi = new OI();
     m_chooser.setDefaultOption("Default Auto", new DriveCommand());
+
+    DriveLeft2.follow(DriveLeft1);
+    
     // chooser.addOption("My Auto", new MyAutoCommand());
     SmartDashboard.putData("Auto mode", m_chooser);
 
@@ -141,10 +145,10 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
-    double XboxPosY = DriverInputPrimary.getY(Hand.kLeft);
+    double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
     double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY);
 
-    System.out.println(XboxPosYSquared);
+    //System.out.println(XboxPosYSquared);
 
     if (XboxPosYSquared > 0.0075 || XboxPosYSquared < -0.0075) {
       DriveLeft1.set(ControlMode.PercentOutput, XboxPosYSquared);
