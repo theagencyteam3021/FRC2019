@@ -21,6 +21,7 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
+import java.lang.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -141,10 +142,12 @@ public class Robot extends TimedRobot {
     Scheduler.getInstance().run();
 
     double XboxPosY = DriverInputPrimary.getY(Hand.kLeft);
-    System.out.println(XboxPosY);
+    double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY);
 
-    if (XboxPosY > 0.07 || XboxPosY < -0.07) {
-      DriveLeft1.set(ControlMode.PercentOutput, XboxPosY);
+    System.out.println(XboxPosYSquared);
+
+    if (XboxPosYSquared > 0.0075 || XboxPosYSquared < -0.0075) {
+      DriveLeft1.set(ControlMode.PercentOutput, XboxPosYSquared);
       
     }
     else {
