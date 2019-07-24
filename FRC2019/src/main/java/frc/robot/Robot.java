@@ -7,9 +7,12 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.DriveCommand;
@@ -32,11 +35,20 @@ import java.lang.*;
  */
 public class Robot extends TimedRobot {
 
-  TalonSRX DriveLeft1 = new TalonSRX(1);
-  TalonSRX DriveLeft2 = new TalonSRX(2);
+  //Motor 1 Back Right Motor
+  //Motor 2 Front Right Motor
+  //Motor 3 Front Left Motor
+  //Motor 4 Back Left Motor
+  //Reverse direction of set
 
+  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1);
+  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2);
+  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3);
+  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4);
+
+  DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
+  
   XboxController DriverInputPrimary = new XboxController(0);
-
 
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
@@ -53,9 +65,9 @@ public class Robot extends TimedRobot {
     m_oi = new OI();
     m_chooser.setDefaultOption("Default Auto", new DriveCommand());
 
-    DriveLeft2.follow(DriveLeft1);
-    
-    // chooser.addOption("My Auto", new MyAutoCommand());
+    Motor2.follow(Motor1);
+    Motor4.follow(Motor3);
+
     SmartDashboard.putData("Auto mode", m_chooser);
 
   }
@@ -134,7 +146,10 @@ public class Robot extends TimedRobot {
     }
 */
 
-    DriveLeft1.set(ControlMode.PercentOutput, 0);
+    Motor1.set(ControlMode.PercentOutput, 0);
+    //Reverse motor direction later
+    Motor3.set(ControlMode.PercentOutput, 0);
+
 
   }
 
@@ -145,19 +160,23 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     Scheduler.getInstance().run();
 
+    //they are cubed atm not squared
+
     double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
-    double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY);
-
+    double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
+    double XboxPosX = DriverInputPrimary.getX(Hand.kRight);
+    double XboxPosXSquared = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
     //System.out.println(XboxPosYSquared);
+    // 0.0075 not 0.0007 for squared
 
-    if (XboxPosYSquared > 0.0075 || XboxPosYSquared < -0.0075) {
-      DriveLeft1.set(ControlMode.PercentOutput, XboxPosYSquared);
-      
-    }
-    else {
-      DriveLeft1.set(ControlMode.PercentOutput, 0);
-        }
-  }
+     if (!(XboxPosYSquared > 0.0007 || XboxPosYSquared < -0.0007)) {
+      XboxPosYSquared = 0;
+     }
+     if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
+      XboxPosXSquared = 0;
+     }
+     diffDrive.arcadeDrive(-XboxPosYSquared, -XboxPosXSquared);
+   }
 
   /**
    * This function is called periodically during test mode.
