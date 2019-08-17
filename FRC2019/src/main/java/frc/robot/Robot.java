@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
@@ -24,6 +25,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import java.lang.*;
+import java.sql.Driver;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -48,6 +50,7 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
+  int pos = 0; //for the Feeder encoder position
 
   DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
   
@@ -212,8 +215,10 @@ public class Robot extends TimedRobot {
     else{
       Motor7.set(0);
     }
+    if(DriverInputPrimary.getStartButtonPressed()){
+      Motor7.set(ControlMode.Position, pos+3584);
+    }
     //Motor7.set(ControlMode.Position, 28);
-
    }
 
   /**
