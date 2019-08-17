@@ -215,10 +215,6 @@ public class Robot extends TimedRobot {
     else{
       Motor7.set(0);
     }
-    if(DriverInputPrimary.getStartButtonPressed()){
-      Motor7.set(ControlMode.Position, pos+3584);
-    }
-    //Motor7.set(ControlMode.Position, 28);
    }
 
   /**
