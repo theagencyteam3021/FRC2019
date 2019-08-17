@@ -162,9 +162,10 @@ public class Robot extends TimedRobot {
 
     //they are cubed atm not squared
 
-    double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
+    //double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
+    double XboxPosY = DriverInputPrimary.getTriggerAxis(Hand.kLeft) - DriverInputPrimary.getTriggerAxis(Hand.kRight);
     double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
-    double XboxPosX = DriverInputPrimary.getX(Hand.kRight);
+    double XboxPosX = DriverInputPrimary.getX(Hand.kLeft); //was previsouly kRight
     double XboxPosXSquared = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
     //System.out.println(XboxPosYSquared);
     // 0.0075 not 0.0007 for squared
@@ -175,7 +176,8 @@ public class Robot extends TimedRobot {
      if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
       XboxPosXSquared = 0;
      }
-     diffDrive.arcadeDrive(-XboxPosYSquared, -XboxPosXSquared);
+     
+     diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
    }
 
   /**
