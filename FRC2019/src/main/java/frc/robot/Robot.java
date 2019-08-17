@@ -7,7 +7,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
@@ -213,7 +212,7 @@ public class Robot extends TimedRobot {
     else{
       Motor7.set(0);
     }
-
+    //Motor7.set(ControlMode.Position, 28);
 
    }
 
