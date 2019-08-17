@@ -40,11 +40,15 @@ public class Robot extends TimedRobot {
   //Motor 3 Front Left Motor
   //Motor 4 Back Left Motor
   //Reverse direction of set
-
-  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1);
-  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2);
-  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3);
-  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4);
+//Drive Motors
+  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1); //Back Right
+  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2); //Front Right
+  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3); //Front Left
+  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
+  //Turret Motors
+  WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
+  WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
+  WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
 
   DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
   
@@ -150,6 +154,11 @@ public class Robot extends TimedRobot {
     //Reverse motor direction later
     Motor3.set(ControlMode.PercentOutput, 0);
 
+    Motor5.set(ControlMode.PercentOutput, 0);
+    Motor6.set(ControlMode.PercentOutput, 0);
+    Motor7.set(ControlMode.PercentOutput, 0);
+
+
 
   }
 
@@ -178,6 +187,12 @@ public class Robot extends TimedRobot {
      }
      
      diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
+
+
+
+
+
+
    }
 
   /**
