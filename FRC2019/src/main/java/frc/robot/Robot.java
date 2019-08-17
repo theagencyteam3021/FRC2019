@@ -193,24 +193,24 @@ public class Robot extends TimedRobot {
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
     if (DriverInputPrimary.getYButton()){ //Raise
-      Motor5.set(0.2);
+      Motor5.set(0.5);//0.2
     }
     else if (DriverInputPrimary.getXButton()){ //Lower
-      Motor5.set(-0.2);
+      Motor5.set(-0.5);//0.2
     }
     else{ //Don't Move
       Motor5.set(0);
     }
     //~~~~Shooter
     if (DriverInputPrimary.getBumper(Hand.kLeft)){
-      Motor6.set(0.9);
+      Motor6.set(-0.75);
     }
     else{
       Motor6.set(0);
     }
     //~~~~Feeder
     if (DriverInputPrimary.getBumper(Hand.kRight)){
-      Motor7.set(1);
+      Motor7.set(-1);
     }
     else{
       Motor7.set(0);
