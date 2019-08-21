@@ -7,7 +7,7 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import java.lang.*;
+import java.sql.Driver;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -40,11 +41,16 @@ public class Robot extends TimedRobot {
   //Motor 3 Front Left Motor
   //Motor 4 Back Left Motor
   //Reverse direction of set
-
-  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1);
-  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2);
-  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3);
-  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4);
+//Drive Motors
+  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1); //Back Right
+  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2); //Front Right
+  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3); //Front Left
+  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
+  //Turret Motors
+  WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
+  WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
+  WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
+  int pos = 0; //for the Feeder encoder position
 
   DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
   
@@ -150,6 +156,11 @@ public class Robot extends TimedRobot {
     //Reverse motor direction later
     Motor3.set(ControlMode.PercentOutput, 0);
 
+    Motor5.set(ControlMode.PercentOutput, 0);
+    Motor6.set(ControlMode.PercentOutput, 0);
+    Motor7.set(ControlMode.PercentOutput, 0);
+
+
 
   }
 
@@ -162,9 +173,10 @@ public class Robot extends TimedRobot {
 
     //they are cubed atm not squared
 
-    double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
+    //double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
+    double XboxPosY = DriverInputPrimary.getTriggerAxis(Hand.kLeft) - DriverInputPrimary.getTriggerAxis(Hand.kRight);
     double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
-    double XboxPosX = DriverInputPrimary.getX(Hand.kRight);
+    double XboxPosX = DriverInputPrimary.getX(Hand.kLeft); //was previsouly kRight
     double XboxPosXSquared = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
     //System.out.println(XboxPosYSquared);
     // 0.0075 not 0.0007 for squared
@@ -175,7 +187,34 @@ public class Robot extends TimedRobot {
      if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
       XboxPosXSquared = 0;
      }
-     diffDrive.arcadeDrive(-XboxPosYSquared, -XboxPosXSquared);
+     
+     diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
+
+    //Turret Control
+    //~~~~Aiming (Raising and Lowering System)
+    if (DriverInputPrimary.getYButton()){ //Raise
+      Motor5.set(0.5);//0.2
+    }
+    else if (DriverInputPrimary.getXButton()){ //Lower
+      Motor5.set(-0.5);//0.2
+    }
+    else{ //Don't Move
+      Motor5.set(0);
+    }
+    //~~~~Shooter
+    if (DriverInputPrimary.getBumper(Hand.kLeft)){
+      Motor6.set(-0.75);
+    }
+    else{
+      Motor6.set(0);
+    }
+    //~~~~Feeder
+    if (DriverInputPrimary.getBumper(Hand.kRight)){
+      Motor7.set(-1);
+    }
+    else{
+      Motor7.set(0);
+    }
    }
 
   /**
