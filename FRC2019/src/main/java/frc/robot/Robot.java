@@ -188,7 +188,7 @@ public class Robot extends TimedRobot {
       XboxPosXSquared = 0;
      }
      
-     diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
+     diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.6))); //0.5  //divided by 2
 
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
