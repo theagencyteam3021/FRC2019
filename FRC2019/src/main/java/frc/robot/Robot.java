@@ -203,7 +203,7 @@ public class Robot extends TimedRobot {
     }
     //~~~~Shooter
     if (DriverInputPrimary.getBumper(Hand.kLeft)){
-      Motor6.set(-0.75);
+      Motor6.set(-1.00);//0.75
     }
     else{
       Motor6.set(0);
