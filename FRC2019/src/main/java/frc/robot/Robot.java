@@ -24,7 +24,8 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
-//import java.lang.*;
+
+import java.lang.*;
 import java.sql.Driver;
 
 //limelight stuff
@@ -73,6 +74,9 @@ public class Robot extends TimedRobot {
   NetworkTableEntry tx = table.getEntry("tx");
   NetworkTableEntry ty = table.getEntry("ty");
   NetworkTableEntry ta = table.getEntry("ta");
+
+  //global double
+  double motorMotion = 0;
 
 
   /**
@@ -163,8 +167,8 @@ public class Robot extends TimedRobot {
     /*if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-*/
-
+*/  
+//System.out.println("test 123");
     Motor1.set(ControlMode.PercentOutput, 0);
     //Reverse motor direction later
     Motor3.set(ControlMode.PercentOutput, 0);
@@ -172,6 +176,9 @@ public class Robot extends TimedRobot {
     Motor5.set(ControlMode.PercentOutput, 0);
     Motor6.set(ControlMode.PercentOutput, 0);
     Motor7.set(ControlMode.PercentOutput, 0);
+
+    //Motor5.set(0.5);
+    //Motor5.set(0);
 
 
 
@@ -182,6 +189,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+    //System.out.println("test 123");
+    //console_debug("test123");
     Scheduler.getInstance().run();
 
     //they are cubed atm not squared
@@ -207,9 +216,12 @@ public class Robot extends TimedRobot {
     //~~~~Aiming (Raising and Lowering System)
     if (DriverInputPrimary.getYButton()){ //Raise
       Motor5.set(0.5);//0.2
+      motorMotion += 0.5;
+      //Thread.sleep(100000);
     }
     else if (DriverInputPrimary.getXButton()){ //Lower
       Motor5.set(-0.5);//0.2
+      motorMotion -= 0.5;
     }
     else{ //Don't Move
       Motor5.set(0);
@@ -229,11 +241,14 @@ public class Robot extends TimedRobot {
       Motor7.set(0);
     }
 
+    System.out.println("motorMotion = "+motorMotion);
     //limelight 
     //read values periodically
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
+
+    //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
     //post to smart dashboard periodically
     SmartDashboard.putNumber("LimelightX", x);
