@@ -77,7 +77,8 @@ public class Robot extends TimedRobot {
 
   //global double
   double motorMotion = 0;
-
+  double neckAngle; 
+  boolean previousMoving = false;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -180,6 +181,11 @@ public class Robot extends TimedRobot {
     //Motor5.set(0.5);
     //Motor5.set(0);
 
+    //Reset the neck value
+    motorMotion = 0;
+    neckAngle = 0;
+    previousMoving = false;
+
 
 
   }
@@ -216,15 +222,20 @@ public class Robot extends TimedRobot {
     //~~~~Aiming (Raising and Lowering System)
     if (DriverInputPrimary.getYButton()){ //Raise
       Motor5.set(0.5);//0.2
-      motorMotion += 0.5;
+      if (previousMoving && motorMotion < 180.0) motorMotion += 0.5;
+      else if(motorMotion < 180.0) motorMotion += 0.3;
+      previousMoving = true;
       //Thread.sleep(100000);
     }
     else if (DriverInputPrimary.getXButton()){ //Lower
       Motor5.set(-0.5);//0.2
-      motorMotion -= 0.5;
+      if (previousMoving && motorMotion > 0.0) motorMotion -= 0.4;
+      else if(motorMotion > 0.0) motorMotion -= 0.2;
+      previousMoving = true;
     }
     else{ //Don't Move
       Motor5.set(0);
+      previousMoving = false;
     }
     //~~~~Shooter
     if (DriverInputPrimary.getBumper(Hand.kLeft)){
@@ -241,12 +252,13 @@ public class Robot extends TimedRobot {
       Motor7.set(0);
     }
 
-    System.out.println("motorMotion = "+motorMotion);
+    //System.out.println("motorMotion = "+motorMotion);
     //limelight 
     //read values periodically
     double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
+    neckAngle = motorMotion / 4.2;
 
     //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
@@ -254,13 +266,25 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", y);
     SmartDashboard.putNumber("LimelightArea", area);
+    SmartDashboard.putNumber("NeckMotion", motorMotion);
+    SmartDashboard.putNumber("NeckAngle", neckAngle);
+    SmartDashboard.putBoolean("WasMoving", previousMoving);
 
    }
 
   /**
    * This function is called periodically during test mode.
    */
+
+   @Override
+   public void testInit() {
+    
+   }
+
   @Override
   public void testPeriodic() {
+    //System.out.println(motorMotion);
+    
   }
+
 }
