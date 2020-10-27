@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 import java.lang.*;
 import java.sql.Driver;
 
+
 //limelight stuff
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
@@ -79,6 +80,11 @@ public class Robot extends TimedRobot {
   double motorMotion = 0;
   double neckAngle; 
   boolean previousMoving = false;
+
+  //constant heights for testing
+  final double TARGET_HEIGHT = 35.0;
+  final double LIMELIGHT_HEIGHT = 29.75;
+  final double HEIGHTDIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
 
   /**
    * This function is run when the robot is first started up and should be
@@ -256,18 +262,21 @@ public class Robot extends TimedRobot {
     //limelight 
     //read values periodically
     double x = tx.getDouble(0.0);
-    double y = ty.getDouble(0.0);
+    double phi = ty.getDouble(0.0);
     double area = ta.getDouble(0.0);
     neckAngle = motorMotion / 4.2;
+
+    double distanceToTarget = HEIGHTDIFFERENCE / Math.tan(Math.toRadians(phi));
 
     //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
     //post to smart dashboard periodically
     SmartDashboard.putNumber("LimelightX", x);
-    SmartDashboard.putNumber("LimelightY", y);
+    SmartDashboard.putNumber("LimelightY", phi);
     SmartDashboard.putNumber("LimelightArea", area);
     SmartDashboard.putNumber("NeckMotion", motorMotion);
     SmartDashboard.putNumber("NeckAngle", neckAngle);
+    SmartDashboard.putNumber("Distance", distanceToTarget);
     SmartDashboard.putBoolean("WasMoving", previousMoving);
 
    }
