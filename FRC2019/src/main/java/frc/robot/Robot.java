@@ -19,6 +19,7 @@ import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.ExampleSubsystem;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.*;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -82,7 +83,7 @@ public class Robot extends TimedRobot {
   boolean previousMoving = false;
 
   //constant heights for testing
-  final double TARGET_HEIGHT = 35.0;
+  final double TARGET_HEIGHT = 35.25;
   final double LIMELIGHT_HEIGHT = 29.75;
   final double HEIGHTDIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
 
@@ -191,6 +192,8 @@ public class Robot extends TimedRobot {
     motorMotion = 0;
     neckAngle = 0;
     previousMoving = false;
+    Motor5.configFactoryDefault();
+   // Motor5.configSelectedFeedbackSensor(FeedbackDevice.SensorSum);
 
 
 
@@ -278,7 +281,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("NeckAngle", neckAngle);
     SmartDashboard.putNumber("Distance", distanceToTarget);
     SmartDashboard.putBoolean("WasMoving", previousMoving);
-
+    SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Vwlocity", Motor5.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
    }
 
   /**
