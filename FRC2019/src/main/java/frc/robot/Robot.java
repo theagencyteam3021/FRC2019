@@ -58,7 +58,7 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
   //Turret Motors
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
-  AnalogPotentiometer pot5 = new AnalogPotentiometer(0,45,0); // potentiometer for the motor number 5
+  AnalogPotentiometer pot5 = new AnalogPotentiometer(1,1,0); // potentiometer for the motor number 5
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
   int pos = 0; //for the Feeder encoder position
@@ -293,9 +293,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("NeckAngle", neckAngle);
     SmartDashboard.putNumber("Distance", distanceToTarget);
     SmartDashboard.putBoolean("WasMoving", previousMoving);
-    SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Vwlocity", Motor5.getSelectedSensorVelocity());
-    SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
+    //SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
+    //SmartDashboard.putNumber("Velocity", Motor5.getSelectedSensorVelocity());
+    //SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
     SmartDashboard.putNumber("potentiometerNeckAngle", potentiometerNeckAngle);
    }
 
