@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -57,6 +58,7 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
   //Turret Motors
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
+  AnalogPotentiometer pot5 = new AnalogPotentiometer(0,45,0); // potentiometer for the motor number 5
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
   int pos = 0; //for the Feeder encoder position
@@ -65,11 +67,11 @@ public class Robot extends TimedRobot {
   
   XboxController DriverInputPrimary = new XboxController(0);
 
-  public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
-  public static OI m_oi;
+  public static ExampleSubsystem subsystem = new ExampleSubsystem();
+  public static OI oi;
 
-  Command m_autonomousCommand;
-  SendableChooser<Command> m_chooser = new SendableChooser<>();
+  Command autonomousCommand;
+  SendableChooser<Command> chooser = new SendableChooser<>();
 
   //limelight setup
   NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
@@ -77,15 +79,18 @@ public class Robot extends TimedRobot {
   NetworkTableEntry ty = table.getEntry("ty");
   NetworkTableEntry ta = table.getEntry("ta");
 
-  //global double
+  //global doubles
   double motorMotion = 0;
   double neckAngle; 
+  double potentiometerNeckAngle;
   boolean previousMoving = false;
 
   //constant heights for testing
+  //note all measurements in inches
   final double TARGET_HEIGHT = 35.25;
   final double LIMELIGHT_HEIGHT = 29.75;
-  final double HEIGHTDIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
+  final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
+  final double CAMERA_TO_FULCRUM = 13.5;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -93,13 +98,13 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    m_oi = new OI();
-    m_chooser.setDefaultOption("Default Auto", new DriveCommand());
+    oi = new OI();
+    chooser.setDefaultOption("Default Auto", new DriveCommand());
 
     Motor2.follow(Motor1);
     Motor4.follow(Motor3);
 
-    SmartDashboard.putData("Auto mode", m_chooser);
+    SmartDashboard.putData("Auto mode", chooser);
 
   }
 
@@ -142,7 +147,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_chooser.getSelected();
+    autonomousCommand = chooser.getSelected();
 
     /*
      * String autoSelected = SmartDashboard.getString("Auto Selector",
@@ -152,8 +157,8 @@ public class Robot extends TimedRobot {
      */
 
     // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.start();
+    if (autonomousCommand != null) {
+      autonomousCommand.start();
     }
   }
 
@@ -269,7 +274,14 @@ public class Robot extends TimedRobot {
     double area = ta.getDouble(0.0);
     neckAngle = motorMotion / 4.2;
 
-    double distanceToTarget = HEIGHTDIFFERENCE / Math.tan(Math.toRadians(phi));
+    potentiometerNeckAngle = pot5.get();
+
+    double netAngle = phi+potentiometerNeckAngle;
+
+    //double distanceToTarget = HEIGHTDIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(potentiometerNeckAngle)));
+    //disanceToTarget /= Math.tan(Math.toRadians(netAngle)); 
+    //the above should be correct but dont want to mess anything up
+    double distanceToTarget = HEIGHT_DIFFERENCE / Math.tan(Math.toRadians(phi));
 
     //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
@@ -284,6 +296,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
     SmartDashboard.putNumber("Vwlocity", Motor5.getSelectedSensorVelocity());
     SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
+    SmartDashboard.putNumber("potentiometerNeckAngle", potentiometerNeckAngle);
    }
 
   /**
