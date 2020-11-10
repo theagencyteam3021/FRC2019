@@ -102,7 +102,7 @@ public class Robot extends TimedRobot {
   int potNeckAngleSize = 0;
   double potNeckAngleSum = 0;
   double avgPotNeckAngle = 0;
-  final int AVERAGER_MAX_SIZE = 50;
+  final int AVERAGER_MAX_SIZE = 1000;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -265,7 +265,7 @@ public class Robot extends TimedRobot {
     }
     //~~~~Shooter
     if (DriverInputPrimary.getBumper(Hand.kLeft)){
-      Motor6.set(-0.75);
+      Motor6.set(-0.6);
     }
     else{
       Motor6.set(0);
@@ -288,12 +288,21 @@ public class Robot extends TimedRobot {
 
     //potentiometerNeckAngle = Math.round(pot5.get() * 1000.0) / 1000.0 + 3.996;
     potentiometerNeckAngle = pot5.get() + 3.996;
-    potNeckAngleAverager.add(potentiometerNeckAngle);
-    potNeckAngleSize++;
-    potNeckAngleSum += potentiometerNeckAngle;
-    if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
-    potNeckAngleSum -= potNeckAngleAverager.remove();
-    potNeckAngleSize--;
+    if(previousMoving == false){
+      potNeckAngleAverager.add(potentiometerNeckAngle);
+      potNeckAngleSize++;
+      potNeckAngleSum += potentiometerNeckAngle;
+      if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
+      potNeckAngleSum -= potNeckAngleAverager.remove();
+      potNeckAngleSize--;
+      //avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
+      }
+    }
+    //delete queued data if moving
+    if(previousMoving) {
+      potNeckAngleAverager.clear();
+      potNeckAngleSize = 0;
+      potNeckAngleSum = 0; 
     }
     avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
 
