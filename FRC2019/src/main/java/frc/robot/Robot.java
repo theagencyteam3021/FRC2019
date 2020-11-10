@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -37,6 +38,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+//queues to get that hot O(1) time
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -58,7 +63,8 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
   //Turret Motors
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
-  AnalogPotentiometer pot5 = new AnalogPotentiometer(1,1,0); // potentiometer for the motor number 5
+  AnalogInput PotentiometerIn = new AnalogInput(1);
+  AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn,2578.947,2578.947*-0.987); // potentiometer for the motor number 5
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
   int pos = 0; //for the Feeder encoder position
@@ -91,6 +97,12 @@ public class Robot extends TimedRobot {
   final double LIMELIGHT_HEIGHT = 29.75;
   final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
   final double CAMERA_TO_FULCRUM = 13.5;
+
+  Queue<Double> potNeckAngleAverager = new LinkedList<Double>();
+  int potNeckAngleSize = 0;
+  double potNeckAngleSum = 0;
+  double avgPotNeckAngle = 0;
+  final int AVERAGER_MAX_SIZE = 50;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -274,14 +286,26 @@ public class Robot extends TimedRobot {
     double area = ta.getDouble(0.0);
     neckAngle = motorMotion / 4.2;
 
-    potentiometerNeckAngle = pot5.get();
+    //potentiometerNeckAngle = Math.round(pot5.get() * 1000.0) / 1000.0 + 3.996;
+    potentiometerNeckAngle = pot5.get() + 3.996;
+    potNeckAngleAverager.add(potentiometerNeckAngle);
+    potNeckAngleSize++;
+    potNeckAngleSum += potentiometerNeckAngle;
+    if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
+    potNeckAngleSum -= potNeckAngleAverager.remove();
+    potNeckAngleSize--;
+    }
+    avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
 
-    double netAngle = phi+potentiometerNeckAngle;
+    //double netAngle = phi+potentiometerNeckAngle;
+    double netAngle = phi+avgPotNeckAngle;
 
-    //double distanceToTarget = HEIGHTDIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(potentiometerNeckAngle)));
-    //disanceToTarget /= Math.tan(Math.toRadians(netAngle)); 
+
+    //double distanceToTarget = HEIGHT_DIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(potentiometerNeckAngle)));
+    double distanceToTarget = HEIGHT_DIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(avgPotNeckAngle)));
+    distanceToTarget /= Math.tan(Math.toRadians(netAngle)); 
     //the above should be correct but dont want to mess anything up
-    double distanceToTarget = HEIGHT_DIFFERENCE / Math.tan(Math.toRadians(phi));
+    double distanceToTarget2 = HEIGHT_DIFFERENCE / Math.tan(Math.toRadians(phi));
 
     //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
@@ -292,11 +316,13 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("NeckMotion", motorMotion);
     SmartDashboard.putNumber("NeckAngle", neckAngle);
     SmartDashboard.putNumber("Distance", distanceToTarget);
+    SmartDashboard.putNumber("Distance2", distanceToTarget2);
     SmartDashboard.putBoolean("WasMoving", previousMoving);
     //SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
     //SmartDashboard.putNumber("Velocity", Motor5.getSelectedSensorVelocity());
     //SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
     SmartDashboard.putNumber("potentiometerNeckAngle", potentiometerNeckAngle);
+    SmartDashboard.putNumber("avgPotNeckAngle", avgPotNeckAngle);
    }
 
   /**
