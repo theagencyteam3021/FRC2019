@@ -288,7 +288,7 @@ public class Robot extends TimedRobot {
 
     //potentiometerNeckAngle = Math.round(pot5.get() * 1000.0) / 1000.0 + 3.996;
     potentiometerNeckAngle = pot5.get() + 3.996;
-    if(previousMoving == false){
+    if(!previousMoving){
       potNeckAngleAverager.add(potentiometerNeckAngle);
       potNeckAngleSize++;
       potNeckAngleSum += potentiometerNeckAngle;
@@ -299,7 +299,7 @@ public class Robot extends TimedRobot {
       }
     }
     //delete queued data if moving
-    if(previousMoving) {
+    else {
       potNeckAngleAverager.clear();
       potNeckAngleSize = 0;
       potNeckAngleSum = 0; 
