@@ -9,20 +9,14 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-
-import com.ctre.phoenix.motorcontrol.can.*;
-import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import java.lang.*;
 import java.sql.Driver;
@@ -47,8 +41,7 @@ public class Robot extends TimedRobot {
 
   private Drive drive;
 
-  //Turret Motors
-  WPI_TalonSRX Motor5 = new WPI_TalonSRX(RobotMap.TURRET_ACTUATOR); //Aiming (raise/lowering linear actuator)
+  private Turret turret;
   AnalogInput PotentiometerIn = new AnalogInput(1);
   AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn, 2578.947, 2578.947 * -0.987); // potentiometer for the motor number 5
   //output was going from about 0.987 to 1.006, needs to be from 0-49º
@@ -56,27 +49,18 @@ public class Robot extends TimedRobot {
   //y=2578.947(x-.987) and distribute it
   //and for some inexplicable reason it's always 3.996º less than it should be
   //move the adding 3.996 to the constructor or get rid of it altogeher
-  WPI_TalonSRX Motor6 = new WPI_TalonSRX(RobotMap.TURRET_SHOOTER); //Shooter wheel
-  WPI_TalonSRX Motor7 = new WPI_TalonSRX(RobotMap.TURRET_FEEDER); //Feeder
 
   XboxController DriverInputPrimary = new XboxController(0);
-
-  public static OI oi;
 
   Command autonomousCommand;
   SendableChooser<Command> chooser = new SendableChooser<>();
 
   //limelight setup
   NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-  NetworkTableEntry tx = table.getEntry("tx");
-  NetworkTableEntry ty = table.getEntry("ty");
-  NetworkTableEntry ta = table.getEntry("ta");
-
-  //global doubles
-  double motorMotion = 0;
-  double neckAngle;
+  NetworkTableEntry limelightX = table.getEntry("tx");
+  NetworkTableEntry limelightY = table.getEntry("ty");
+  NetworkTableEntry limelightA = table.getEntry("ta");
   double potentiometerNeckAngle;
-  boolean previousMoving = false;
 
   //constant heights for testing
   //note all measurements in inches
@@ -100,7 +84,7 @@ public class Robot extends TimedRobot {
     boolean DEBUG = true;
     drive = new Drive(RobotMap.L_DRIVE_FRONT, RobotMap.R_DRIVE_FRONT, RobotMap.L_DRIVE_BACK, RobotMap.R_DRIVE_BACK,
         "Drive", DEBUG);
-
+    turret = new Turret(RobotMap.TURRET_ACTUATOR, RobotMap.TURRET_FEEDER, RobotMap.TURRET_SHOOTER, "Drive", DEBUG);
   }
 
   /**
@@ -143,6 +127,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     drive.autonomousInit();
+    turret.autonomousInit();
     autonomousCommand = chooser.getSelected();
 
     /*
@@ -169,6 +154,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     drive.teleopInit();
+    turret.teleopInit();
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
@@ -178,16 +164,6 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
     */
-
-    Motor5.set(ControlMode.PercentOutput, 0);
-    Motor6.set(ControlMode.PercentOutput, 0);
-    Motor7.set(ControlMode.PercentOutput, 0);
-
-    //Reset the neck value
-    motorMotion = 0;
-    neckAngle = 0;
-    previousMoving = false;
-    Motor5.configFactoryDefault();
 
   }
 
@@ -216,57 +192,44 @@ public class Robot extends TimedRobot {
 
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
-    if (DriverInputPrimary.getYButton()) { //Raise
-      Motor5.set(0.5);//0.2
-      if (previousMoving && motorMotion < 180.0)
-        motorMotion += 0.5;
-      else if (motorMotion < 180.0)
-        motorMotion += 0.3;
-      previousMoving = true;
-      //Thread.sleep(100000);
-    } else if (DriverInputPrimary.getXButton()) { //Lower
-      Motor5.set(-0.5);//0.2
-      if (previousMoving && motorMotion > 0.0)
-        motorMotion -= 0.4;
-      else if (motorMotion > 0.0)
-        motorMotion -= 0.2;
-      previousMoving = true;
-    } else { //Don't Move
-      Motor5.set(0);
-      previousMoving = false;
+    if (DriverInputPrimary.getYButton()) {
+      turret.raiseActuator();
+    } else if (DriverInputPrimary.getXButton()) {
+      turret.lowerActuator();
+    } else {
+      turret.stopActuator();
     }
+
     //~~~~Shooter
     if (DriverInputPrimary.getBumper(Hand.kLeft)) {
-      Motor6.set(-0.75);
+      turret.shoot();
     } else {
-      Motor6.set(0);
+      turret.stopShooting();
     }
+
     //~~~~Feeder
     if (DriverInputPrimary.getBumper(Hand.kRight)) {
-      Motor7.set(-1);
+      turret.feed();
     } else {
-      Motor7.set(0);
+      turret.stopFeeder();
     }
 
-    //System.out.println("motorMotion = "+motorMotion);
     //limelight 
     //read values periodically
-    double x = tx.getDouble(0.0);
-    double phi = ty.getDouble(0.0);
-    double area = ta.getDouble(0.0);
-    neckAngle = motorMotion / 4.2;
+    double x = limelightX.getDouble(0.0);
+    double phi = limelightY.getDouble(0.0);
+    double area = limelightA.getDouble(0.0);
 
-    //potentiometerNeckAngle = Math.round(pot5.get() * 1000.0) / 1000.0 + 3.996;
     potentiometerNeckAngle = pot5.get() + 3.996;
-    if (!previousMoving) {
+    if (!turret.actuatorPreviouslyMoving()) {
       potNeckAngleAverager.add(potentiometerNeckAngle);
       potNeckAngleSize++;
       potNeckAngleSum += potentiometerNeckAngle;
       if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
         potNeckAngleSum -= potNeckAngleAverager.remove();
         potNeckAngleSize--;
-        //avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
       }
+      avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
     }
     //delete queued data if moving
     else {
@@ -274,7 +237,6 @@ public class Robot extends TimedRobot {
       potNeckAngleSize = 0;
       potNeckAngleSum = 0;
     }
-    avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
 
     //double netAngle = phi+potentiometerNeckAngle;
     double netAngle = phi + avgPotNeckAngle;
@@ -282,25 +244,17 @@ public class Robot extends TimedRobot {
     //double distanceToTarget = HEIGHT_DIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(potentiometerNeckAngle)));
     double distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
     distanceToTarget /= Math.tan(Math.toRadians(netAngle));
-    //the above should be correct but dont want to mess anything up
-    double distanceToTarget2 = HEIGHT_DIFFERENCE / Math.tan(Math.toRadians(phi));
-
-    //System.out.println("xPos = "+x+" yPos = "+y+" area = "+area);
 
     //post to smart dashboard periodically
     SmartDashboard.putNumber("LimelightX", x);
     SmartDashboard.putNumber("LimelightY", phi);
     SmartDashboard.putNumber("LimelightArea", area);
-    SmartDashboard.putNumber("NeckMotion", motorMotion);
-    SmartDashboard.putNumber("NeckAngle", neckAngle);
     SmartDashboard.putNumber("Distance", distanceToTarget);
-    SmartDashboard.putNumber("Distance2", distanceToTarget2);
-    SmartDashboard.putBoolean("WasMoving", previousMoving);
-    //SmartDashboard.putNumber("NeckPos", Motor5.getSelectedSensorPosition());
-    //SmartDashboard.putNumber("Velocity", Motor5.getSelectedSensorVelocity());
-    //SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
     SmartDashboard.putNumber("potentiometerNeckAngle", potentiometerNeckAngle);
     SmartDashboard.putNumber("avgPotNeckAngle", avgPotNeckAngle);
+
+    drive.teleopPeriodic();
+    turret.teleopPeriodic();
   }
 
   /**
