@@ -27,10 +27,8 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
-
 import java.lang.*;
 import java.sql.Driver;
-
 
 //limelight stuff
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -56,7 +54,7 @@ public class Robot extends TimedRobot {
   //Motor 3 Front Left Motor
   //Motor 4 Back Left Motor
   //Reverse direction of set
-//Drive Motors
+  //Drive Motors
   WPI_TalonSRX Motor1 = new WPI_TalonSRX(1); //Back Right
   WPI_TalonSRX Motor2 = new WPI_TalonSRX(2); //Front Right
   WPI_TalonSRX Motor3 = new WPI_TalonSRX(3); //Front Left
@@ -64,13 +62,13 @@ public class Robot extends TimedRobot {
   //Turret Motors
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
   AnalogInput PotentiometerIn = new AnalogInput(1);
-  AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn,2578.947,2578.947*-0.987); // potentiometer for the motor number 5
+  AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn, 2578.947, 2578.947 * -0.987); // potentiometer for the motor number 5
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
   int pos = 0; //for the Feeder encoder position
 
   DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
-  
+
   XboxController DriverInputPrimary = new XboxController(0);
 
   public static ExampleSubsystem subsystem = new ExampleSubsystem();
@@ -87,7 +85,7 @@ public class Robot extends TimedRobot {
 
   //global doubles
   double motorMotion = 0;
-  double neckAngle; 
+  double neckAngle;
   double potentiometerNeckAngle;
   boolean previousMoving = false;
 
@@ -95,7 +93,7 @@ public class Robot extends TimedRobot {
   //note all measurements in inches
   final double TARGET_HEIGHT = 35.25;
   final double LIMELIGHT_HEIGHT = 29.75;
-  final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT-LIMELIGHT_HEIGHT);
+  final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT - LIMELIGHT_HEIGHT);
   final double CAMERA_TO_FULCRUM = 13.5;
 
   Queue<Double> potNeckAngleAverager = new LinkedList<Double>();
@@ -192,8 +190,8 @@ public class Robot extends TimedRobot {
     /*if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-*/  
-//System.out.println("test 123");
+    */
+    //System.out.println("test 123");
     Motor1.set(ControlMode.PercentOutput, 0);
     //Reverse motor direction later
     Motor3.set(ControlMode.PercentOutput, 0);
@@ -210,9 +208,7 @@ public class Robot extends TimedRobot {
     neckAngle = 0;
     previousMoving = false;
     Motor5.configFactoryDefault();
-   // Motor5.configSelectedFeedbackSensor(FeedbackDevice.SensorSum);
-
-
+    // Motor5.configSelectedFeedbackSensor(FeedbackDevice.SensorSum);
 
   }
 
@@ -235,46 +231,46 @@ public class Robot extends TimedRobot {
     //System.out.println(XboxPosYSquared);
     // 0.0075 not 0.0007 for squared
 
-     if (!(XboxPosYSquared > 0.0007 || XboxPosYSquared < -0.0007)) {
+    if (!(XboxPosYSquared > 0.0007 || XboxPosYSquared < -0.0007)) {
       XboxPosYSquared = 0;
-     }
-     if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
+    }
+    if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
       XboxPosXSquared = 0;
-     }
-     
-     diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
+    }
+
+    diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
 
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
-    if (DriverInputPrimary.getYButton()){ //Raise
+    if (DriverInputPrimary.getYButton()) { //Raise
       Motor5.set(0.5);//0.2
-      if (previousMoving && motorMotion < 180.0) motorMotion += 0.5;
-      else if(motorMotion < 180.0) motorMotion += 0.3;
+      if (previousMoving && motorMotion < 180.0)
+        motorMotion += 0.5;
+      else if (motorMotion < 180.0)
+        motorMotion += 0.3;
       previousMoving = true;
       //Thread.sleep(100000);
-    }
-    else if (DriverInputPrimary.getXButton()){ //Lower
+    } else if (DriverInputPrimary.getXButton()) { //Lower
       Motor5.set(-0.5);//0.2
-      if (previousMoving && motorMotion > 0.0) motorMotion -= 0.4;
-      else if(motorMotion > 0.0) motorMotion -= 0.2;
+      if (previousMoving && motorMotion > 0.0)
+        motorMotion -= 0.4;
+      else if (motorMotion > 0.0)
+        motorMotion -= 0.2;
       previousMoving = true;
-    }
-    else{ //Don't Move
+    } else { //Don't Move
       Motor5.set(0);
       previousMoving = false;
     }
     //~~~~Shooter
-    if (DriverInputPrimary.getBumper(Hand.kLeft)){
-      Motor6.set(-0.6);
-    }
-    else{
+    if (DriverInputPrimary.getBumper(Hand.kLeft)) {
+      Motor6.set(-0.75);
+    } else {
       Motor6.set(0);
     }
     //~~~~Feeder
-    if (DriverInputPrimary.getBumper(Hand.kRight)){
+    if (DriverInputPrimary.getBumper(Hand.kRight)) {
       Motor7.set(-1);
-    }
-    else{
+    } else {
       Motor7.set(0);
     }
 
@@ -288,31 +284,30 @@ public class Robot extends TimedRobot {
 
     //potentiometerNeckAngle = Math.round(pot5.get() * 1000.0) / 1000.0 + 3.996;
     potentiometerNeckAngle = pot5.get() + 3.996;
-    if(!previousMoving){
+    if (!previousMoving) {
       potNeckAngleAverager.add(potentiometerNeckAngle);
       potNeckAngleSize++;
       potNeckAngleSum += potentiometerNeckAngle;
       if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
-      potNeckAngleSum -= potNeckAngleAverager.remove();
-      potNeckAngleSize--;
-      //avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
+        potNeckAngleSum -= potNeckAngleAverager.remove();
+        potNeckAngleSize--;
+        //avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
       }
     }
     //delete queued data if moving
     else {
       potNeckAngleAverager.clear();
       potNeckAngleSize = 0;
-      potNeckAngleSum = 0; 
+      potNeckAngleSum = 0;
     }
     avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
 
     //double netAngle = phi+potentiometerNeckAngle;
-    double netAngle = phi+avgPotNeckAngle;
-
+    double netAngle = phi + avgPotNeckAngle;
 
     //double distanceToTarget = HEIGHT_DIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(potentiometerNeckAngle)));
-    double distanceToTarget = HEIGHT_DIFFERENCE -(CAMERA_TO_FULCRUM* Math.sin(Math.toRadians(avgPotNeckAngle)));
-    distanceToTarget /= Math.tan(Math.toRadians(netAngle)); 
+    double distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
+    distanceToTarget /= Math.tan(Math.toRadians(netAngle));
     //the above should be correct but dont want to mess anything up
     double distanceToTarget2 = HEIGHT_DIFFERENCE / Math.tan(Math.toRadians(phi));
 
@@ -332,21 +327,21 @@ public class Robot extends TimedRobot {
     //SmartDashboard.putNumber("Out %",Motor5.getMotorOutputPercent());
     SmartDashboard.putNumber("potentiometerNeckAngle", potentiometerNeckAngle);
     SmartDashboard.putNumber("avgPotNeckAngle", avgPotNeckAngle);
-   }
+  }
 
   /**
    * This function is called periodically during test mode.
    */
 
-   @Override
-   public void testInit() {
-    
-   }
+  @Override
+  public void testInit() {
+
+  }
 
   @Override
   public void testPeriodic() {
     //System.out.println(motorMotion);
-    
+
   }
 
 }
