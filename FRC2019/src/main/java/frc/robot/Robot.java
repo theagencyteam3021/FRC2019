@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
   int potNeckAngleSize = 0;
   double potNeckAngleSum = 0;
   double avgPotNeckAngle = 0;
-  final int AVERAGER_MAX_SIZE = 1000;
+  final int AVERAGER_MAX_SIZE = 50;
 
   /**
    * This function is run when the robot is first started up and should be
