@@ -25,6 +25,11 @@ public class Drive extends AgencySystem {
         lFront = new WPI_TalonSRX(frontLeftID);
         lBack = new WPI_TalonSRX(backLeftID);
 
+        rBack.configFactoryDefault();
+        rFront.configFactoryDefault();
+        lBack.configFactoryDefault();
+        lFront.configFactoryDefault();
+
         drive = new DifferentialDrive(rFront, lFront);
         rBack.follow(rFront);
         lBack.follow(lFront);
