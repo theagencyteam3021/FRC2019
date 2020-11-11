@@ -31,7 +31,6 @@ import java.lang.*;
 import java.sql.Driver;
 
 //limelight stuff
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -63,6 +62,11 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
   AnalogInput PotentiometerIn = new AnalogInput(1);
   AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn, 2578.947, 2578.947 * -0.987); // potentiometer for the motor number 5
+  //output was going from about 0.987 to 1.006, needs to be from 0-49º
+  //2578.947 = range of motion of shooter (49º) / range of motion of output (0.019)
+  //y=2578.947(x-.987) and distribute it
+  //and for some inexplicable reason it's always 3.996º less than it should be
+  //move the adding 3.996 to the constructor or get rid of it altogeher
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
   int pos = 0; //for the Feeder encoder position
@@ -225,20 +229,20 @@ public class Robot extends TimedRobot {
 
     //double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
     double XboxPosY = DriverInputPrimary.getTriggerAxis(Hand.kLeft) - DriverInputPrimary.getTriggerAxis(Hand.kRight);
-    double XboxPosYSquared = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
+    double XboxPosYCubed = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
     double XboxPosX = DriverInputPrimary.getX(Hand.kLeft); //was previsouly kRight
-    double XboxPosXSquared = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
+    double XboxPosXCubed = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
     //System.out.println(XboxPosYSquared);
     // 0.0075 not 0.0007 for squared
 
-    if (!(XboxPosYSquared > 0.0007 || XboxPosYSquared < -0.0007)) {
-      XboxPosYSquared = 0;
+    if (!(XboxPosYCubed > 0.0007 || XboxPosYCubed < -0.0007)) {
+      XboxPosYCubed = 0;
     }
-    if (!(XboxPosXSquared > 0.0007 || XboxPosXSquared < -0.0007)) {
-      XboxPosXSquared = 0;
+    if (!(XboxPosXCubed > 0.0007 || XboxPosXCubed < -0.0007)) {
+      XboxPosXCubed = 0;
     }
 
-    diffDrive.arcadeDrive(-XboxPosYSquared, -(XboxPosXSquared * Math.max(Math.abs(XboxPosYSquared), 0.5))); //divided by 2
+    diffDrive.arcadeDrive(-XboxPosYCubed, -(XboxPosXCubed * Math.max(Math.abs(XboxPosYCubed), 0.5))); //divided by 2
 
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
