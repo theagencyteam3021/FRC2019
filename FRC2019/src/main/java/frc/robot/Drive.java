@@ -14,6 +14,7 @@ public class Drive extends AgencySystem {
     private WPI_TalonSRX lBack;
     private DifferentialDrive drive;
 
+    //Constructor for drive subsystem
     public Drive(int frontLeftID, int frontRightID, int backLeftID, int backRightID, String name, Boolean debug) {
         this.name = name;
         this.debug = debug;
@@ -33,6 +34,11 @@ public class Drive extends AgencySystem {
 
     }
 
+    //Drives the robot at a given speed and rotation
+    //@param speed the speed to drive at
+    //Precondition: -1 <= speed <= 1
+    //@param rotation the rotation or turning of the robot
+    //Precondition: -1 <= rotation <= 1
     public void drive(double speed, double rotation) {
         drive.arcadeDrive(speed, rotation);
     }
