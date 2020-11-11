@@ -204,9 +204,6 @@ public class Robot extends TimedRobot {
     Motor6.set(ControlMode.PercentOutput, 0);
     Motor7.set(ControlMode.PercentOutput, 0);
 
-    //Motor5.set(0.5);
-    //Motor5.set(0);
-
     //Reset the neck value
     motorMotion = 0;
     neckAngle = 0;
@@ -227,13 +224,13 @@ public class Robot extends TimedRobot {
 
     //they are cubed atm not squared
 
-    //double XboxPosY = DriverInputPrimary.getY(Hand.kRight);
+    // at one point these were squared
+    // threshold is 0.0075 for squared, 0.0007 for cubed
     double XboxPosY = DriverInputPrimary.getTriggerAxis(Hand.kLeft) - DriverInputPrimary.getTriggerAxis(Hand.kRight);
     double XboxPosYCubed = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
     double XboxPosX = DriverInputPrimary.getX(Hand.kLeft); //was previsouly kRight
     double XboxPosXCubed = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
     //System.out.println(XboxPosYSquared);
-    // 0.0075 not 0.0007 for squared
 
     if (!(XboxPosYCubed > 0.0007 || XboxPosYCubed < -0.0007)) {
       XboxPosYCubed = 0;
