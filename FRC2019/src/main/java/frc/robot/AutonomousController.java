@@ -1,0 +1,114 @@
+package frc.robot;
+
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+
+//limelight stuff
+import edu.wpi.first.networktables.NetworkTable;
+//import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+
+//queues to get that hot O(1) time
+import java.util.LinkedList;
+import java.util.Queue;
+
+import java.lang.Math;
+
+public class AutonomousController extends AgencySystem {
+    private AnalogInput potentiometerInput;
+    private AnalogPotentiometer actuatorPotentiometer;
+    private NetworkTable table;
+
+    private double limelightX;
+    private double limelightY;
+    private double limelightA;
+
+    private double potentiometerNeckAngle;
+    private double distanceToTarget;
+    private double netAngle;
+
+    //constant heights for testing
+    //note all measurements in inches
+    private final double TARGET_HEIGHT = 35.25;
+    private final double LIMELIGHT_HEIGHT = 29.75;
+    private final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT - LIMELIGHT_HEIGHT);
+    private final double CAMERA_TO_FULCRUM = 13.5;
+
+    private Queue<Double> potNeckAngleAverager;
+    private int potNeckAngleSize;
+    private double potNeckAngleSum;
+    private double avgPotNeckAngle;
+    private final int AVERAGER_MAX_SIZE = 50;
+
+    public AutonomousController(int potentiometerID, String name, boolean debug) {
+        this.name = name;
+        this.debug = debug;
+
+        potentiometerInput = new AnalogInput(potentiometerID);
+        actuatorPotentiometer = new AnalogPotentiometer(potentiometerInput, 2578.947, (578.947 * -0.987)); // potentiometer for the motor number 5
+        //output was going from about 0.987 to 1.006, needs to be from 0-49º
+        //2578.947 = range of motion of shooter (49º) / range of motion of output (0.019)
+        //y=2578.947(x-.987) and distribute it
+        //and for some inexplicable reason it's always 3.996º less than it should be
+        //move the adding 3.996 to the constructor or get rid of it altogeher
+
+        table = NetworkTableInstance.getDefault().getTable("limelight");
+        limelightX = table.getEntry("tx").getDouble(0);
+        limelightY = table.getEntry("ty").getDouble(0);
+        limelightA = table.getEntry("ta").getDouble(0);
+
+        potNeckAngleAverager = new LinkedList<Double>();
+        potNeckAngleSize = 0;
+        potNeckAngleSum = 0;
+        avgPotNeckAngle = 0;
+        distanceToTarget = 0;
+        netAngle = 0;
+    }
+
+    private void displayValues() {
+        shuffleDebug("LimelightX", limelightX);
+        shuffleDebug("LimelightY", limelightY);
+        shuffleDebug("LimelightArea", limelightA);
+        shuffleDebug("Distance", distanceToTarget);
+        shuffleDebug("potentiometerNeckAngle", potentiometerNeckAngle);
+        shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
+    }
+
+    //Gets distance to target according to limelight
+    //@param actuatorPreviouslyMoving from turret subsystem
+    //boolean is used to optimize the queue and make sure the rolling average
+    //doesn't get too delayed when unnecessary
+    private double getLimelightDistance(boolean actuatorPreviouslyMoving) {
+        potentiometerNeckAngle = actuatorPotentiometer.get() + 3.996; //TODO: try and get rid of this 3.996
+        if (actuatorPreviouslyMoving) {
+            potNeckAngleAverager.add(potentiometerNeckAngle);
+            potNeckAngleSize++;
+            potNeckAngleSum += potentiometerNeckAngle;
+            if (potNeckAngleSize > AVERAGER_MAX_SIZE) {
+                potNeckAngleSum -= potNeckAngleAverager.remove();
+                potNeckAngleSize--;
+            }
+            avgPotNeckAngle = potNeckAngleSum / potNeckAngleSize;
+        }
+        //delete queued data if moving
+        else {
+            potNeckAngleAverager.clear();
+            potNeckAngleSize = 0;
+            potNeckAngleSum = 0;
+        }
+
+        netAngle = limelightY + avgPotNeckAngle;
+
+        distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
+        distanceToTarget /= Math.tan(Math.toRadians(netAngle));
+        return distanceToTarget;
+    }
+
+    //Updates and displays sensor values during teleop
+    //@param actuatorPreviouslyMoving from turret subsystem
+    public void teleopPeriodic(boolean actuatorPreviouslyMoving) {
+        getLimelightDistance(actuatorPreviouslyMoving);
+        displayValues();
+    }
+
+}
