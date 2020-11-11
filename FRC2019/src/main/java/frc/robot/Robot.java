@@ -46,18 +46,14 @@ import java.util.Queue;
  */
 public class Robot extends TimedRobot {
 
-  //Motor 1 Back Right Motor
-  //Motor 2 Front Right Motor
-  //Motor 3 Front Left Motor
-  //Motor 4 Back Left Motor
   //Reverse direction of set
   //Drive Motors
-  WPI_TalonSRX Motor1 = new WPI_TalonSRX(1); //Back Right
-  WPI_TalonSRX Motor2 = new WPI_TalonSRX(2); //Front Right
-  WPI_TalonSRX Motor3 = new WPI_TalonSRX(3); //Front Left
-  WPI_TalonSRX Motor4 = new WPI_TalonSRX(4); //Back Left
+  WPI_TalonSRX Motor1 = new WPI_TalonSRX(RobotMap.R_DRIVE_BACK); //Back Right
+  WPI_TalonSRX Motor2 = new WPI_TalonSRX(RobotMap.R_DRIVE_FRONT); //Front Right
+  WPI_TalonSRX Motor3 = new WPI_TalonSRX(RobotMap.L_DRIVE_FRONT); //Front Left
+  WPI_TalonSRX Motor4 = new WPI_TalonSRX(RobotMap.L_DRIVE_BACK); //Back Left
   //Turret Motors
-  WPI_TalonSRX Motor5 = new WPI_TalonSRX(5); //Aiming (raise/lowering linear actuator)
+  WPI_TalonSRX Motor5 = new WPI_TalonSRX(RobotMap.TURRET_ACTUATOR); //Aiming (raise/lowering linear actuator)
   AnalogInput PotentiometerIn = new AnalogInput(1);
   AnalogPotentiometer pot5 = new AnalogPotentiometer(PotentiometerIn, 2578.947, 2578.947 * -0.987); // potentiometer for the motor number 5
   //output was going from about 0.987 to 1.006, needs to be from 0-49º
@@ -65,9 +61,8 @@ public class Robot extends TimedRobot {
   //y=2578.947(x-.987) and distribute it
   //and for some inexplicable reason it's always 3.996º less than it should be
   //move the adding 3.996 to the constructor or get rid of it altogeher
-  WPI_TalonSRX Motor6 = new WPI_TalonSRX(6); //Shooter wheel
-  WPI_TalonSRX Motor7 = new WPI_TalonSRX(7); //Feeder
-  int pos = 0; //for the Feeder encoder position
+  WPI_TalonSRX Motor6 = new WPI_TalonSRX(RobotMap.TURRET_SHOOTER); //Shooter wheel
+  WPI_TalonSRX Motor7 = new WPI_TalonSRX(RobotMap.TURRET_FEEDER); //Feeder
 
   DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
 
