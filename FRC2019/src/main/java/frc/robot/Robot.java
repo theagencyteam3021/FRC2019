@@ -17,8 +17,6 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.commands.DriveCommand;
-import frc.robot.subsystems.ExampleSubsystem;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
@@ -75,7 +73,6 @@ public class Robot extends TimedRobot {
 
   XboxController DriverInputPrimary = new XboxController(0);
 
-  public static ExampleSubsystem subsystem = new ExampleSubsystem();
   public static OI oi;
 
   Command autonomousCommand;
@@ -113,7 +110,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     oi = new OI();
-    chooser.setDefaultOption("Default Auto", new DriveCommand());
+    //chooser.setDefaultOption("Default Auto", new DriveCommand());
 
     Motor2.follow(Motor1);
     Motor4.follow(Motor3);
