@@ -18,12 +18,11 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.can.*;
-
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+
+import com.ctre.phoenix.motorcontrol.can.*;
+import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import java.lang.*;
 import java.sql.Driver;
@@ -46,12 +45,8 @@ import java.util.Queue;
  */
 public class Robot extends TimedRobot {
 
-  //Reverse direction of set
-  //Drive Motors
-  WPI_TalonSRX Motor1 = new WPI_TalonSRX(RobotMap.R_DRIVE_BACK); //Back Right
-  WPI_TalonSRX Motor2 = new WPI_TalonSRX(RobotMap.R_DRIVE_FRONT); //Front Right
-  WPI_TalonSRX Motor3 = new WPI_TalonSRX(RobotMap.L_DRIVE_FRONT); //Front Left
-  WPI_TalonSRX Motor4 = new WPI_TalonSRX(RobotMap.L_DRIVE_BACK); //Back Left
+  private Drive drive;
+
   //Turret Motors
   WPI_TalonSRX Motor5 = new WPI_TalonSRX(RobotMap.TURRET_ACTUATOR); //Aiming (raise/lowering linear actuator)
   AnalogInput PotentiometerIn = new AnalogInput(1);
@@ -63,8 +58,6 @@ public class Robot extends TimedRobot {
   //move the adding 3.996 to the constructor or get rid of it altogeher
   WPI_TalonSRX Motor6 = new WPI_TalonSRX(RobotMap.TURRET_SHOOTER); //Shooter wheel
   WPI_TalonSRX Motor7 = new WPI_TalonSRX(RobotMap.TURRET_FEEDER); //Feeder
-
-  DifferentialDrive diffDrive = new DifferentialDrive(Motor1, Motor3);
 
   XboxController DriverInputPrimary = new XboxController(0);
 
@@ -104,13 +97,9 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    oi = new OI();
-    //chooser.setDefaultOption("Default Auto", new DriveCommand());
-
-    Motor2.follow(Motor1);
-    Motor4.follow(Motor3);
-
-    SmartDashboard.putData("Auto mode", chooser);
+    boolean DEBUG = true;
+    drive = new Drive(RobotMap.L_DRIVE_FRONT, RobotMap.R_DRIVE_FRONT, RobotMap.L_DRIVE_BACK, RobotMap.R_DRIVE_BACK,
+        "Drive", DEBUG);
 
   }
 
@@ -153,6 +142,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    drive.autonomousInit();
     autonomousCommand = chooser.getSelected();
 
     /*
@@ -178,6 +168,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    drive.teleopInit();
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove
@@ -187,10 +178,6 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
     */
-    //System.out.println("test 123");
-    Motor1.set(ControlMode.PercentOutput, 0);
-    //Reverse motor direction later
-    Motor3.set(ControlMode.PercentOutput, 0);
 
     Motor5.set(ControlMode.PercentOutput, 0);
     Motor6.set(ControlMode.PercentOutput, 0);
@@ -201,7 +188,6 @@ public class Robot extends TimedRobot {
     neckAngle = 0;
     previousMoving = false;
     Motor5.configFactoryDefault();
-    // Motor5.configSelectedFeedbackSensor(FeedbackDevice.SensorSum);
 
   }
 
@@ -210,11 +196,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    //System.out.println("test 123");
-    //console_debug("test123");
     Scheduler.getInstance().run();
-
-    //they are cubed atm not squared
 
     // at one point these were squared
     // threshold is 0.0075 for squared, 0.0007 for cubed
@@ -222,7 +204,6 @@ public class Robot extends TimedRobot {
     double XboxPosYCubed = XboxPosY * Math.abs(XboxPosY) * Math.abs(XboxPosY);
     double XboxPosX = DriverInputPrimary.getX(Hand.kLeft); //was previsouly kRight
     double XboxPosXCubed = XboxPosX * Math.abs(XboxPosX) * Math.abs(XboxPosX);
-    //System.out.println(XboxPosYSquared);
 
     if (!(XboxPosYCubed > 0.0007 || XboxPosYCubed < -0.0007)) {
       XboxPosYCubed = 0;
@@ -231,7 +212,7 @@ public class Robot extends TimedRobot {
       XboxPosXCubed = 0;
     }
 
-    diffDrive.arcadeDrive(-XboxPosYCubed, -(XboxPosXCubed * Math.max(Math.abs(XboxPosYCubed), 0.5))); //divided by 2
+    drive.drive(-XboxPosYCubed, -(XboxPosXCubed * Math.max(Math.abs(XboxPosYCubed), 0.5))); //divided by 2
 
     //Turret Control
     //~~~~Aiming (Raising and Lowering System)
