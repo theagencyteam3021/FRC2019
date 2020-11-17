@@ -1,0 +1,29 @@
+ Robot.java has the following objects and it controls each
+
+    -XboxController
+        NOT created by us 
+        Gets input from Xbox
+        Used to drive other subsystems 
+
+    -AutonomousController (decides what to do when)
+        Member Variables:
+            -Limelight
+            -Potentiometer
+            -Other sensors (ultrasonic, etc)
+        Methods:
+            -Full autonomous mode (pre-programmed tasks)
+            -Aiming assist
+
+    -Turret
+        Member Variables:
+            -Actuator and other motors
+        Methods:
+            -Feed ball into turret
+            -Shoot
+
+    -Drive
+        Member Variables:
+            -Differential Drive
+            -Drive Motors
+        Methods:
+            -Drive
