@@ -40,12 +40,19 @@ public class AutonomousController extends AgencySystem {
     private double avgPotNeckAngle;
     private final int AVERAGER_MAX_SIZE = 50;
 
+    private final double RANGE_OF_MOTION = 47.5;
+    private final double POT_UPPER_BOUND = 1.00505;
+    private final double POT_LOWER_BOUND = 0.9865;
     public AutonomousController(int potentiometerID, String name, boolean debug) {
         this.name = name;
         this.debug = debug;
 
+        final double POT_SCALE_FACTOR = RANGE_OF_MOTION / (POT_UPPER_BOUND-POT_LOWER_BOUND);
+        final double POT_OFFSET = POT_SCALE_FACTOR*-1.0*POT_LOWER_BOUND;
+
         potentiometerInput = new AnalogInput(potentiometerID);
-        actuatorPotentiometer = new AnalogPotentiometer(potentiometerInput, 2578.947, (578.947 * -0.987)); // potentiometer for the motor number 5
+        actuatorPotentiometer = new AnalogPotentiometer(potentiometerInput, POT_SCALE_FACTOR, POT_OFFSET); // potentiometer for the motor number 5
+        //actuatorPotentiometer = new AnalogPotentiometer(potentiometerInput, 1, 0);
         //output was going from about 0.987 to 1.006, needs to be from 0-49º
         //2578.947 = range of motion of shooter (49º) / range of motion of output (0.019)
         //y=2578.947(x-.987) and distribute it
@@ -72,6 +79,7 @@ public class AutonomousController extends AgencySystem {
         shuffleDebug("Distance", distanceToTarget);
         shuffleDebug("potentiometerNeckAngle", potentiometerNeckAngle);
         shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
+        shuffleDebug("AnalogInput",potentiometerInput.getValue());
     }
 
     //Gets distance to target according to limelight
@@ -79,8 +87,11 @@ public class AutonomousController extends AgencySystem {
     //boolean is used to optimize the queue and make sure the rolling average
     //doesn't get too delayed when unnecessary
     private double getLimelightDistance(boolean actuatorPreviouslyMoving) {
-        potentiometerNeckAngle = actuatorPotentiometer.get() + 3.996; //TODO: try and get rid of this 3.996
-        if (actuatorPreviouslyMoving) {
+        limelightX = table.getEntry("tx").getDouble(0);
+        limelightY = table.getEntry("ty").getDouble(0);
+        limelightA = table.getEntry("ta").getDouble(0);
+        potentiometerNeckAngle = actuatorPotentiometer.get(); 
+        if (!actuatorPreviouslyMoving) {
             potNeckAngleAverager.add(potentiometerNeckAngle);
             potNeckAngleSize++;
             potNeckAngleSum += potentiometerNeckAngle;
@@ -98,10 +109,11 @@ public class AutonomousController extends AgencySystem {
         }
 
         netAngle = limelightY + avgPotNeckAngle;
+        if (limelightY == 0.0) return Math.abs(distanceToTarget);
 
         distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
         distanceToTarget /= Math.tan(Math.toRadians(netAngle));
-        return distanceToTarget;
+        return Math.abs(distanceToTarget);
     }
 
     //Updates and displays sensor values during teleop

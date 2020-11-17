@@ -24,6 +24,18 @@ public class AgencySystem {
         SmartDashboard.putString(key, o.toString());
     }
 
+    protected void shuffleDebug(String key, Double o) {
+        if (!debug)
+            return;
+        SmartDashboard.putNumber(key, o);
+    }
+
+    protected void shuffleDebug(String key, Boolean o) {
+        if (!debug)
+            return;
+        SmartDashboard.putBoolean(key, o);
+    }
+
     // We do not have a  RobotInit() because these objects should only be created in RobotInit
     public void simulationInit() {
     };
