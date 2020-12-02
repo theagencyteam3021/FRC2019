@@ -22,9 +22,8 @@ public class AutonomousController extends AgencySystem {
     private double limelightX;
     private double limelightY;
     private double limelightA;
-    private double limelightH;
-    private double limelightV;
-
+    private double limelightHOR;
+    private double limelightVER;
 
     private double potentiometerNeckAngle;
     private double distanceToTarget;
@@ -74,8 +73,8 @@ public class AutonomousController extends AgencySystem {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
-        limelightH = table.getEntry("thor").getDouble(0);
-        limelightV = table.getEntry("tver").getDouble(0);
+        limelightHOR = table.getEntry("thor").getDouble(0);
+        limelightVER = table.getEntry("tver").getDouble(0);
 
 
         potNeckAngleAverager = new LinkedList<Double>();
@@ -132,19 +131,25 @@ public class AutonomousController extends AgencySystem {
     }
 
     private double getTargetAngle() {
-
         camVertical = TARGET_VERTICAL * Math.cos(Math.toRadians(netAngle));
-        camHorizontal = limelightH * (limelightV / camVertical);
+        camHorizontal = limelightHOR * (limelightVER / camVertical);
 
-        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL));
-        distanceToMove = distanceToTarget/Math.tan(Math.toRadians(targetAngle));
-
+        //Because we're dealing with arccos here, the targetAngle could be negative.
+        //FIX: Move the robot a direction, and see how the angle changes.
+        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL)+limelightX);
+        distanceToMove = distanceToTarget*Math.cos(Math.toRadians(targetAngle));
         return(targetAngle);
     }
 
     //Updates and displays sensor values during teleop
     //@param actuatorPreviouslyMoving from turret subsystem
     public void teleopPeriodic(boolean actuatorPreviouslyMoving) {
+        limelightX = table.getEntry("tx").getDouble(0);
+        limelightY = table.getEntry("ty").getDouble(0);
+        limelightA = table.getEntry("ta").getDouble(0);
+        limelightHOR = table.getEntry("thor").getDouble(0);
+        limelightVER = table.getEntry("tver").getDouble(0);
+
         getLimelightDistance(actuatorPreviouslyMoving);
         getTargetAngle();
         displayValues();
