@@ -37,7 +37,8 @@ public class AutonomousController extends AgencySystem {
     private final double CAMERA_TO_FULCRUM = 13.5;
 
     private final double TARGET_VERTICAL = 17.0;
-    private final double TARGET_HORIZONTAL = 39.75;
+    private final double TARGET_HORIZONTAL = 37.2;
+    //This may need to change
 
     private double camVertical;
     private double camHorizontal;
@@ -74,7 +75,7 @@ public class AutonomousController extends AgencySystem {
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
         limelightHOR = table.getEntry("thor").getDouble(0);
-        limelightVER = table.getEntry("tver").getDouble(0);
+        limelightVER = table.getEntry("tvert").getDouble(0);
 
 
         potNeckAngleAverager = new LinkedList<Double>();
@@ -83,6 +84,7 @@ public class AutonomousController extends AgencySystem {
         avgPotNeckAngle = 0;
         distanceToTarget = 0;
         netAngle = 0;
+        targetAngle = 0.0;
     }
 
     private void displayValues() {
@@ -94,6 +96,10 @@ public class AutonomousController extends AgencySystem {
         shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
         shuffleDebug("TargetAngle", targetAngle);
         shuffleDebug("DistanceToMove", distanceToMove);
+        shuffleDebug("camHorizontal", camHorizontal);
+        shuffleDebug("camVertical", camVertical);
+        shuffleDebug("LimelightHOR", limelightHOR);
+        shuffleDebug("LimelightVER", limelightVER);
     }
 
     //Gets distance to target according to limelight
@@ -133,11 +139,11 @@ public class AutonomousController extends AgencySystem {
 
     private double getTargetAngle() {
         camVertical = TARGET_VERTICAL * Math.cos(Math.toRadians(netAngle));
-        camHorizontal = limelightHOR * (limelightVER / camVertical);
+        camHorizontal = limelightHOR * (camVertical / limelightVER);
 
         //Because we're dealing with arccos here, the targetAngle could be negative.
         //FIX: Move the robot a direction, and see how the angle changes.
-        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL)+limelightX);
+        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL))+limelightX;
         distanceToMove = distanceToTarget*Math.cos(Math.toRadians(targetAngle));
         return(targetAngle);
     }
@@ -148,8 +154,8 @@ public class AutonomousController extends AgencySystem {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
-        limelightHOR = table.getEntry("thor").getDouble(0);
-        limelightVER = table.getEntry("tver").getDouble(0);
+        limelightHOR = table.getEntry("tlong").getDouble(0);
+        limelightVER = table.getEntry("tshort").getDouble(0);
 
         getLimelightDistance(actuatorPreviouslyMoving);
         getTargetAngle();
