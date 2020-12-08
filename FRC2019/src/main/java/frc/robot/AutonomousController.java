@@ -22,6 +22,8 @@ public class AutonomousController extends AgencySystem {
     private double limelightX;
     private double limelightY;
     private double limelightA;
+    private double limelightHOR;
+    private double limelightVER;
 
     private double potentiometerNeckAngle;
     private double distanceToTarget;
@@ -33,6 +35,14 @@ public class AutonomousController extends AgencySystem {
     private final double LIMELIGHT_HEIGHT = 29.75;
     private final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT - LIMELIGHT_HEIGHT);
     private final double CAMERA_TO_FULCRUM = 13.5;
+
+    private final double TARGET_VERTICAL = 17.0;
+    private final double TARGET_HORIZONTAL = 39.75;
+
+    private double camVertical;
+    private double camHorizontal;
+    private double targetAngle;
+    private double distanceToMove;
 
     private Queue<Double> potNeckAngleAverager;
     private int potNeckAngleSize;
@@ -63,6 +73,9 @@ public class AutonomousController extends AgencySystem {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
+        limelightHOR = table.getEntry("thor").getDouble(0);
+        limelightVER = table.getEntry("tver").getDouble(0);
+
 
         potNeckAngleAverager = new LinkedList<Double>();
         potNeckAngleSize = 0;
@@ -79,7 +92,8 @@ public class AutonomousController extends AgencySystem {
         shuffleDebug("Distance", distanceToTarget);
         shuffleDebug("potentiometerNeckAngle", potentiometerNeckAngle);
         shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
-        shuffleDebug("AnalogInput",potentiometerInput.getValue());
+        shuffleDebug("TargetAngle", targetAngle);
+        shuffleDebug("DistanceToMove", distanceToMove);
     }
 
     //Gets distance to target according to limelight
@@ -116,10 +130,28 @@ public class AutonomousController extends AgencySystem {
         return Math.abs(distanceToTarget);
     }
 
+    private double getTargetAngle() {
+        camVertical = TARGET_VERTICAL * Math.cos(Math.toRadians(netAngle));
+        camHorizontal = limelightHOR * (limelightVER / camVertical);
+
+        //Because we're dealing with arccos here, the targetAngle could be negative.
+        //FIX: Move the robot a direction, and see how the angle changes.
+        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL)+limelightX);
+        distanceToMove = distanceToTarget*Math.cos(Math.toRadians(targetAngle));
+        return(targetAngle);
+    }
+
     //Updates and displays sensor values during teleop
     //@param actuatorPreviouslyMoving from turret subsystem
     public void teleopPeriodic(boolean actuatorPreviouslyMoving) {
+        limelightX = table.getEntry("tx").getDouble(0);
+        limelightY = table.getEntry("ty").getDouble(0);
+        limelightA = table.getEntry("ta").getDouble(0);
+        limelightHOR = table.getEntry("thor").getDouble(0);
+        limelightVER = table.getEntry("tver").getDouble(0);
+
         getLimelightDistance(actuatorPreviouslyMoving);
+        getTargetAngle();
         displayValues();
     }
 
