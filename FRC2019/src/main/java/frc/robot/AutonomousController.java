@@ -31,7 +31,7 @@ public class AutonomousController extends AgencySystem {
 
     //constant heights for testing
     //note all measurements in inches
-    private final double TARGET_HEIGHT = 35.25;
+    private final double TARGET_HEIGHT = 83.7;
     private final double LIMELIGHT_HEIGHT = 29.75;
     private final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT - LIMELIGHT_HEIGHT);
     private final double CAMERA_TO_FULCRUM = 13.5;
@@ -123,11 +123,12 @@ public class AutonomousController extends AgencySystem {
         }
 
         netAngle = limelightY + avgPotNeckAngle;
-        if (limelightY == 0.0) return Math.abs(distanceToTarget);
+        if (limelightY == 0.0) return distanceToTarget;
 
         distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
         distanceToTarget /= Math.tan(Math.toRadians(netAngle));
-        return Math.abs(distanceToTarget);
+        distanceToTarget = Math.abs(distanceToTarget);
+        return distanceToTarget;
     }
 
     private double getTargetAngle() {
