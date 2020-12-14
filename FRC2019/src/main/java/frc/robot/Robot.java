@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
@@ -155,28 +154,50 @@ public class Robot extends TimedRobot {
 
     drive.drive(-XboxPosYCubed, -(XboxPosXCubed * Math.max(Math.abs(XboxPosYCubed), 0.5))); //divided by 2
 
-    //Turret Control
-    //~~~~Aiming (Raising and Lowering System)
-    if (DriverInputPrimary.getYButton()) {
-      turret.raiseActuator();
-    } else if (DriverInputPrimary.getXButton()) {
-      turret.lowerActuator();
-    } else {
-      turret.stopActuator();
-    }
+    if (!autonomousController.autonomousAssistInProgress()) {
+      //Turret Control
+      //~~~~Aiming (Raising and Lowering System)
+      if (DriverInputPrimary.getYButton()) {
+        turret.raiseActuator();
+      } else if (DriverInputPrimary.getXButton()) {
+        turret.lowerActuator();
+      } else {
+        turret.stopActuator();
+      }
 
-    //~~~~Shooter
-    if (DriverInputPrimary.getBumper(Hand.kLeft)) {
-      turret.shoot();
-    } else {
-      turret.stopShooting();
-    }
+      //~~~~Shooter
+      if (DriverInputPrimary.getBumper(Hand.kLeft)) {
+        turret.shoot();
+      } else {
+        turret.stopShooting();
+      }
 
-    //~~~~Feeder
-    if (DriverInputPrimary.getBumper(Hand.kRight)) {
-      turret.feed();
+      //~~~~Feeder
+      if (DriverInputPrimary.getBumper(Hand.kRight)) {
+        turret.feed();
+      } else {
+        turret.stopFeeder();
+      }
+      //A=start autonomous assist
+      if (DriverInputPrimary.getAButton()) {
+        autonomousController.autonomousAssist();
+      }
     } else {
-      turret.stopFeeder();
+      //back button = bail
+      if (DriverInputPrimary.getBackButton()) {
+        autonomousController.cancelAutonomousAssist();
+      } else {
+        double[] autonomousAssistOutput = autonomousController.autonomousAssist();
+        //[distance to go left/right, amount to move neck, distance from target, ready to shoot?]
+        if (autonomousAssistOutput[3] == 1.0) {
+          turret.stopActuator();
+          drive.stopDrive();
+          turret.shootDistance(autonomousAssistOutput[2]);
+        } else {
+          drive.driveSideways(autonomousAssistOutput[0]); //how to distinguish between moving left and right... negative distance?
+          turret.moveActuator(autonomousAssistOutput[1]); //same concern here, does ty go positive and negative
+        }
+      }
     }
 
     drive.teleopPeriodic();

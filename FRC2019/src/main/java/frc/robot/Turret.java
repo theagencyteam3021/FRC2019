@@ -5,11 +5,15 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 import com.ctre.phoenix.motorcontrol.can.*;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import java.lang.Math;
 
 public class Turret extends AgencySystem {
     private WPI_TalonSRX shooter;
     private WPI_TalonSRX actuator;
     private WPI_TalonSRX feeder;
+
+    private final double DISTANCE_TO_POWER_SCALE_FACTOR = 0.02; // change after testing
+    private final double ANGLE_TO_POWER_SCALE_FACTOR = 0.2;
 
     private boolean previousMoving;
 
@@ -46,6 +50,16 @@ public class Turret extends AgencySystem {
         previousMoving = true;
     }
 
+    public void moveActuator(double angle) {
+        double angleToPower = angle * ANGLE_TO_POWER_SCALE_FACTOR;
+        if (angleToPower > 1.0)
+            angleToPower = 1.0;
+        if (angleToPower < -1.0)
+            angleToPower = -1.0;
+        actuator.set(angleToPower);
+        previousMoving = true;
+    }
+
     public void lowerActuator() {
         actuator.set(-0.5);
         previousMoving = true;
@@ -58,6 +72,17 @@ public class Turret extends AgencySystem {
 
     public void shoot() {
         shooter.set(-0.75);
+    }
+
+    public void shoot(double speed) {
+        shooter.set(-1 * Math.abs(speed));
+    }
+
+    public void shootDistance(double distance) {
+        double distanceToPower = -1 * Math.abs(distance) * DISTANCE_TO_POWER_SCALE_FACTOR;
+        if (distanceToPower > 1.0)
+            distanceToPower = 1.0;
+        shoot(distanceToPower);
     }
 
     public void stopShooting() {

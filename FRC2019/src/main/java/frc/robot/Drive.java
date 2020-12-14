@@ -14,6 +14,8 @@ public class Drive extends AgencySystem {
     private WPI_TalonSRX lBack;
     private DifferentialDrive drive;
 
+    private final double DISTANCE_TO_POWER_SCALE_FACTOR = 0.01;
+
     //Constructor for drive subsystem
     public Drive(int frontLeftID, int frontRightID, int backLeftID, int backRightID, String name, Boolean debug) {
         this.name = name;
@@ -46,5 +48,18 @@ public class Drive extends AgencySystem {
     //Precondition: -1 <= rotation <= 1
     public void drive(double speed, double rotation) {
         drive.arcadeDrive(speed, rotation);
+    }
+
+    public void stopDrive() {
+        drive(0.0, 0.0);
+    }
+
+    public void driveSideways(double distance) {
+        double distanceToPower = distance * DISTANCE_TO_POWER_SCALE_FACTOR;
+        if (distanceToPower > 1.0)
+            distanceToPower = 1.0;
+        else if (distanceToPower < -1.0)
+            distanceToPower = -1.0;
+        drive(distanceToPower, 0.0);
     }
 }

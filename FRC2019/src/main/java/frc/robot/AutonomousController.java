@@ -34,6 +34,7 @@ public class AutonomousController extends AgencySystem {
     private final double MAX_DISTANCE_FROM_TARGET = 500.0;
     private final double MIN_DISTANCE_FROM_TARGET = 12.0;
     private double limelightYThreshold;
+    private boolean autonomousAssistInProgress;
 
     //constant heights for testing
     //note all measurements in inches
@@ -88,22 +89,29 @@ public class AutonomousController extends AgencySystem {
         potNeckAngleSize = 0;
         potNeckAngleSum = avgPotNeckAngle = distanceToTarget = netAngle = 0.0;
         camVertical = camHorizontal = targetAngle = distanceHorizontal = 0.0;
-        limelightYThreshold = 0.0;
+
+        autonomousAssistInProgress = false;
+        limelightYThreshold = 5.0;
     }
 
     private void displayValues() {
-        shuffleDebug("LimelightX", limelightX);
-        shuffleDebug("LimelightY", limelightY);
-        shuffleDebug("LimelightArea", limelightA);
-        shuffleDebug("Distance", distanceToTarget);
-        shuffleDebug("potentiometerNeckAngle", potentiometerNeckAngle);
-        shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
-        shuffleDebug("TargetAngle", targetAngle);
-        shuffleDebug("DistanceToMove", distanceHorizontal);
-        shuffleDebug("camHorizontal", camHorizontal);
-        shuffleDebug("camVertical", camVertical);
-        shuffleDebug("LimelightHOR", limelightHOR);
-        shuffleDebug("LimelightVER", limelightVER);
+        if (debug) {
+            shuffleDebug("LimelightX", limelightX);
+            shuffleDebug("LimelightY", limelightY);
+            shuffleDebug("LimelightArea", limelightA);
+            shuffleDebug("Distance", distanceToTarget);
+            shuffleDebug("potentiometerNeckAngle", potentiometerNeckAngle);
+            shuffleDebug("avgPotNeckAngle", avgPotNeckAngle);
+            shuffleDebug("TargetAngle", targetAngle);
+            shuffleDebug("DistanceToMove", distanceHorizontal);
+            shuffleDebug("camHorizontal", camHorizontal);
+            shuffleDebug("camVertical", camVertical);
+            shuffleDebug("LimelightHOR", limelightHOR);
+            shuffleDebug("LimelightVER", limelightVER);
+        } else {
+            shuffleDebug("DistanceToTarget", distanceToTarget);
+            shuffleDebug("DistanceToMove", distanceHorizontal);
+        }
     }
 
     //Gets distance to target according to limelight
@@ -153,16 +161,28 @@ public class AutonomousController extends AgencySystem {
         return (targetAngle);
     }
 
+    public void cancelAutonomousAssist() {
+        autonomousAssistInProgress = false;
+    }
+
+    public boolean autonomousAssistInProgress() {
+        return autonomousAssistInProgress;
+    }
+
     //@return double array [distance to go left/right, amount to move neck, distance from target, ready to shoot?]
-
-    private double[] autonomousAssist() {
+    public double[] autonomousAssist() {
         double[] ans = new double[4];
-
+        autonomousAssistInProgress = true;
         ans[0] = distanceHorizontal;
         ans[1] = limelightY; // is this correct?
         ans[2] = distanceToTarget;
         ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
+
+        //two options: 1) change shooting power based on distance in shooter
+        //2) change limelightY to be above the center and keep constant shooting power
+        //i think #1 will be easier to implement, but we can try the other one too
         if (ans[0] <= DISTANCE_HORIZONTAL_THRESHOLD && ans[1] <= limelightYThreshold) {
+            autonomousAssistInProgress = false;
             ans[3] = 1.0;
         }
         //handle these cases later
