@@ -54,12 +54,13 @@ public class AutonomousController extends AgencySystem {
     private final double RANGE_OF_MOTION = 47.5;
     private final double POT_UPPER_BOUND = 1.00505;
     private final double POT_LOWER_BOUND = 0.9865;
+
     public AutonomousController(int potentiometerID, String name, boolean debug) {
         this.name = name;
         this.debug = debug;
 
-        final double POT_SCALE_FACTOR = RANGE_OF_MOTION / (POT_UPPER_BOUND-POT_LOWER_BOUND);
-        final double POT_OFFSET = POT_SCALE_FACTOR*-1.0*POT_LOWER_BOUND;
+        final double POT_SCALE_FACTOR = RANGE_OF_MOTION / (POT_UPPER_BOUND - POT_LOWER_BOUND);
+        final double POT_OFFSET = POT_SCALE_FACTOR * -1.0 * POT_LOWER_BOUND;
 
         potentiometerInput = new AnalogInput(potentiometerID);
         actuatorPotentiometer = new AnalogPotentiometer(potentiometerInput, POT_SCALE_FACTOR, POT_OFFSET); // potentiometer for the motor number 5
@@ -74,9 +75,8 @@ public class AutonomousController extends AgencySystem {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
-        limelightHOR = table.getEntry("thor").getDouble(0);
-        limelightVER = table.getEntry("tvert").getDouble(0);
-
+        limelightHOR = table.getEntry("tlong").getDouble(0);
+        limelightVER = table.getEntry("tshort").getDouble(0);
 
         potNeckAngleAverager = new LinkedList<Double>();
         potNeckAngleSize = 0;
@@ -110,7 +110,7 @@ public class AutonomousController extends AgencySystem {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
-        potentiometerNeckAngle = actuatorPotentiometer.get(); 
+        potentiometerNeckAngle = actuatorPotentiometer.get();
         if (!actuatorPreviouslyMoving) {
             potNeckAngleAverager.add(potentiometerNeckAngle);
             potNeckAngleSize++;
@@ -129,7 +129,8 @@ public class AutonomousController extends AgencySystem {
         }
 
         netAngle = limelightY + avgPotNeckAngle;
-        if (limelightY == 0.0) return distanceToTarget;
+        if (limelightY == 0.0)
+            return distanceToTarget;
 
         distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
         distanceToTarget /= Math.tan(Math.toRadians(netAngle));
@@ -143,9 +144,9 @@ public class AutonomousController extends AgencySystem {
 
         //Because we're dealing with arccos here, the targetAngle could be negative.
         //FIX: Move the robot a direction, and see how the angle changes.
-        targetAngle = Math.toDegrees(Math.acos(camHorizontal/TARGET_HORIZONTAL))+limelightX;
-        distanceToMove = distanceToTarget*Math.cos(Math.toRadians(targetAngle));
-        return(targetAngle);
+        targetAngle = Math.toDegrees(Math.acos(camHorizontal / TARGET_HORIZONTAL)) + limelightX;
+        distanceToMove = distanceToTarget * Math.cos(Math.toRadians(targetAngle));
+        return (targetAngle);
     }
 
     //Updates and displays sensor values during teleop
