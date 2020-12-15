@@ -12,9 +12,6 @@ public class Turret extends AgencySystem {
     private WPI_TalonSRX actuator;
     private WPI_TalonSRX feeder;
 
-    private final double DISTANCE_TO_POWER_SCALE_FACTOR = 0.02; // change after testing
-    private final double ANGLE_TO_POWER_SCALE_FACTOR = 0.2;
-
     private boolean previousMoving;
 
     //Constructor for drive subsystem
@@ -37,6 +34,14 @@ public class Turret extends AgencySystem {
         shooter.set(ControlMode.PercentOutput, 0);
     }
 
+    private double sigmoid(double input, double maxPower, double deceleration) {
+        return (2*maxPower)/(1+Math.pow(Math.E,-1*input*deceleration)) - maxPower;
+    }
+
+    private double sigmoid(double input) {
+        return sigmoid(input,0.75,0.5);
+    }
+
     public void teleopPeriodic() {
         shuffleDebug("WasMoving", previousMoving);
     }
@@ -51,11 +56,7 @@ public class Turret extends AgencySystem {
     }
 
     public void moveActuator(double angle) {
-        double angleToPower = angle * ANGLE_TO_POWER_SCALE_FACTOR;
-        if (angleToPower > 1.0)
-            angleToPower = 1.0;
-        if (angleToPower < -1.0)
-            angleToPower = -1.0;
+        double angleToPower = sigmoid(angle);
         actuator.set(angleToPower);
         previousMoving = true;
     }
@@ -79,9 +80,7 @@ public class Turret extends AgencySystem {
     }
 
     public void shootDistance(double distance) {
-        double distanceToPower = -1 * Math.abs(distance) * DISTANCE_TO_POWER_SCALE_FACTOR;
-        if (distanceToPower > 1.0)
-            distanceToPower = 1.0;
+        double distanceToPower = sigmoid(distance,0.75,0.117);
         shoot(distanceToPower);
     }
 

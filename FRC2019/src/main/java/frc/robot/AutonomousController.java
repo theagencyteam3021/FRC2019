@@ -157,7 +157,7 @@ public class AutonomousController extends AgencySystem {
         //Because we're dealing with arccos here, the targetAngle could be negative.
         //FIX: Move the robot a direction, and see how the angle changes.
         targetAngle = Math.toDegrees(Math.acos(camHorizontal / TARGET_HORIZONTAL)) + limelightX;
-        distanceHorizontal = distanceToTarget * Math.sin(Math.toRadians(targetAngle));
+        distanceHorizontal = distanceToTarget * Math.sin(Math.toRadians(targetAngle-limelightX));
         return (targetAngle);
     }
 
