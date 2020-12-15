@@ -30,7 +30,7 @@ public class AutonomousController extends AgencySystem {
     private double netAngle;
 
     //distances in inches
-    private final double DISTANCE_HORIZONTAL_THRESHOLD = 6.0; //change
+    private final double DISTANCE_HORIZONTAL_THRESHOLD = 18.0; //change
     private final double MAX_DISTANCE_FROM_TARGET = 500.0;
     private final double MIN_DISTANCE_FROM_TARGET = 12.0;
     private double limelightYThreshold;
@@ -114,6 +114,14 @@ public class AutonomousController extends AgencySystem {
         }
     }
 
+    private double sigmoid(double input, double maxPower, double deceleration) {
+        return (2*maxPower)/(1+Math.pow(Math.E,-1*input*deceleration)) - maxPower;
+    }
+
+    private double sigmoid(double input) {
+        return sigmoid(input,0.75,0.5);
+    }
+
     //Gets distance to target according to limelight
     //@param actuatorPreviouslyMoving from turret subsystem
     //boolean is used to optimize the queue and make sure the rolling average
@@ -173,9 +181,12 @@ public class AutonomousController extends AgencySystem {
     public double[] autonomousAssist() {
         double[] ans = new double[4];
         autonomousAssistInProgress = true;
-        ans[0] = distanceHorizontal;
-        ans[1] = limelightY; // is this correct?
-        ans[2] = distanceToTarget;
+        //ans[0] = distanceHorizontal; old
+
+        //sigmoid changes distance/angle to power input
+        ans[0] = sigmoid(limelightX);
+        ans[1] = sigmoid(limelightY); // is this correct?
+        ans[2] = sigmoid(distanceToTarget,0.75,0.117);
         ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
 
         //two options: 1) change shooting power based on distance in shooter

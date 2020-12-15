@@ -192,9 +192,9 @@ public class Robot extends TimedRobot {
         if (autonomousAssistOutput[3] == 1.0) {
           turret.stopActuator();
           drive.stopDrive();
-          turret.shootDistance(autonomousAssistOutput[2]);
+          turret.shoot(autonomousAssistOutput[2]);
         } else {
-          drive.driveSideways(autonomousAssistOutput[0]); //how to distinguish between moving left and right... negative distance?
+          drive.drive(autonomousAssistOutput[0]); //how to distinguish between moving left and right... negative distance?
           turret.moveActuator(autonomousAssistOutput[1]); //same concern here, does ty go positive and negative
         }
       }

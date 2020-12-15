@@ -34,14 +34,6 @@ public class Turret extends AgencySystem {
         shooter.set(ControlMode.PercentOutput, 0);
     }
 
-    private double sigmoid(double input, double maxPower, double deceleration) {
-        return (2*maxPower)/(1+Math.pow(Math.E,-1*input*deceleration)) - maxPower;
-    }
-
-    private double sigmoid(double input) {
-        return sigmoid(input,0.75,0.5);
-    }
-
     public void teleopPeriodic() {
         shuffleDebug("WasMoving", previousMoving);
     }
@@ -56,8 +48,7 @@ public class Turret extends AgencySystem {
     }
 
     public void moveActuator(double angle) {
-        double angleToPower = sigmoid(angle);
-        actuator.set(angleToPower);
+        actuator.set(angle);
         previousMoving = true;
     }
 
@@ -77,11 +68,6 @@ public class Turret extends AgencySystem {
 
     public void shoot(double speed) {
         shooter.set(-1 * Math.abs(speed));
-    }
-
-    public void shootDistance(double distance) {
-        double distanceToPower = sigmoid(distance,0.75,0.117);
-        shoot(distanceToPower);
     }
 
     public void stopShooting() {
