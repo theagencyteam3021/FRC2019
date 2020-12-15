@@ -181,7 +181,9 @@ public class Robot extends TimedRobot {
       }
       //A=start autonomous assist
       if (DriverInputPrimary.getAButton()) {
+        autonomousController.autonomousAssistInit();
         autonomousController.autonomousAssist();
+        
       }
     } else {
       //back button = bail
@@ -201,9 +203,9 @@ public class Robot extends TimedRobot {
           turret.stopActuator();
           drive.stopDrive();
           turret.feed();
-          turret.shoot(autonomousAssistOutput[2]);
+          turret.shoot();
         } else {
-          drive.drive(autonomousAssistOutput[0]); //how to distinguish between moving left and right... negative distance?
+          drive.drive(autonomousAssistOutput[0],autonomousAssistOutput[1]); //how to distinguish between moving left and right... negative distance?
           turret.moveActuator(autonomousAssistOutput[1]); //same concern here, does ty go positive and negative
         }
       }
