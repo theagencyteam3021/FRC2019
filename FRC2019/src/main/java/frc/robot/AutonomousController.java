@@ -129,7 +129,6 @@ public class AutonomousController extends AgencySystem {
 
     private double sigmoid(double input) {
         return sigmoid(input,0.75,0.5);
-
     }
 
     //Gets distance to target according to limelight
@@ -157,7 +156,6 @@ public class AutonomousController extends AgencySystem {
             potNeckAngleSize = 0;
             potNeckAngleSum = 0;
         }
-
         netAngle = limelightY + avgPotNeckAngle;
         if (limelightY == 0.0)
             return distanceToTarget;
@@ -180,27 +178,21 @@ public class AutonomousController extends AgencySystem {
     }
 
     private double checkAngleSign(double initialAngle) {
-        if(checkAngleSignIterations < 15) {
+        if (checkAngleSignIterations < 15) {
             drivePower = 1.0;
             turnPower = 0.0;
-            checkAngleSignIterations++;
             angleSign = 0;
-        }else{
-            if(getTargetAngle() > initialAngle) {
+            checkAngleSignIterations++;
+
+        } else{
+            if (getTargetAngle() > initialAngle) {
                 angleSign = -1.0; //this might be backwards
             } else {
-                angleSign = 1.0; //
+                angleSign = 1.0; 
             }
         }
         return angleSign;
     }
-
-    private void turnAngle(double angle) {
-        turnPower = sigmoid(angle,1.0,0.07);//This might be negative
-        drivePower = 0;
-
-    }
-
 
     public void cancelAutonomousAssist() {
         autonomousAssistInProgress = false;
@@ -213,10 +205,9 @@ public class AutonomousController extends AgencySystem {
         checkAngleSignIterations = 0;
         angleSign = 0;
         cachedAngle = getTargetAngle();
-
     }
 
-    //@return double array [distance to go left/right, amount to move neck, distance from target, ready to shoot?]
+    //@return double array [power to go left/right, power to turn, power to move head, ready to shoot]
     public double[] autonomousAssist() {
         double[] ans = new double[4];
         autonomousAssistInProgress = true;
@@ -226,29 +217,28 @@ public class AutonomousController extends AgencySystem {
         }//Stops the aiming assist if we can't see the target.
         //TODO: Add seeking, and logic to figure out how to move if we can't see the target
 
+        //[distance to go left/right, amount to move neck, distance from target, ready to shoot?]
         //sigmoid changes distance/angle to power input
         //ans[0] = -1.0*sigmoid(limelightX);
         //ans[1] = sigmoid(limelightY-LIMELIGHT_Y_OFFSET); // is this correct?
         //ans[2] = sigmoid(distanceToTarget,0.75,0.117);
         //ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
-        
-        //new return format: [power to go left/right, power to turn, power to move head, ready to shoot]
     
         if(angleSign == 0) {
             checkAngleSign(cachedAngle);
         } else {
             targetAngle *= angleSign;
-            turnAngle(targetAngle);
-            if(Math.abs(targetAngle)<= ANGLE_THRESHOLD) {
-                drivePower = sigmoid(-1*limelightX);
+            turnPower = sigmoid(targetAngle, 1.0, 0.07);
+            if(Math.abs(targetAngle) <= ANGLE_THRESHOLD) {
+                drivePower = sigmoid(-1 * limelightX);
             }
         }
 
     
-        ans[0]=drivePower;
-        ans[1]=turnPower;
-        ans[2]=sigmoid(limelightY-LIMELIGHT_Y_OFFSET);
-        ans[3]=0;
+        ans[0] =drivePower;
+        ans[1] = turnPower;
+        ans[2] = sigmoid(limelightY - LIMELIGHT_Y_OFFSET);
+        ans[3] = 0;
 
 
         //two options: 1) change shooting power based on distance in shooter
