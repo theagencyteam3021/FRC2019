@@ -30,7 +30,7 @@ public class AutonomousController extends AgencySystem {
     private double netAngle;
 
     //distances in inches
-    private final double DISTANCE_HORIZONTAL_THRESHOLD = 18.0; //change
+    private final double LIMELIGHT_X_Y_THRESHOLD = 0.35; //change
     private final double MAX_DISTANCE_FROM_TARGET = 500.0;
     private final double MIN_DISTANCE_FROM_TARGET = 12.0;
     private double limelightYThreshold;
@@ -192,14 +192,14 @@ public class AutonomousController extends AgencySystem {
         //two options: 1) change shooting power based on distance in shooter
         //2) change limelightY to be above the center and keep constant shooting power
         //i think #1 will be easier to implement, but we can try the other one too
-        if (ans[0] <= DISTANCE_HORIZONTAL_THRESHOLD && ans[1] <= limelightYThreshold) {
+        if (ans[0] <= LIMELIGHT_X_Y_THRESHOLD && ans[1] <= LIMELIGHT_X_Y_THRESHOLD) {
             autonomousAssistInProgress = false;
             ans[3] = 1.0;
         }
         //handle these cases later
-        if (ans[2] >= MAX_DISTANCE_FROM_TARGET || ans[2] <= MIN_DISTANCE_FROM_TARGET) {
+        /*if (distanceToTarget >= MAX_DISTANCE_FROM_TARGET || distanceToTarget <= MIN_DISTANCE_FROM_TARGET) {
             ans[3] = -1.0;
-        }
+        }*/
 
         return ans;
     }
