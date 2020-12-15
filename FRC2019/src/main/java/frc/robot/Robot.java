@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -184,14 +185,22 @@ public class Robot extends TimedRobot {
       }
     } else {
       //back button = bail
-      if (DriverInputPrimary.getBackButton()) {
+      if (DriverInputPrimary.getBButton()) {
         autonomousController.cancelAutonomousAssist();
+        turret.stopActuator();
+        drive.stopDrive();
+        turret.stopFeeder();
+        turret.stopShooting();
+        //DriverInputPrimary.setRumble(RumbleType.kLeftRumble, 1.0);
+        //DriverInputPrimary.setRumble(RumbleType.kRightRumble, 1.0);
+        
       } else {
         double[] autonomousAssistOutput = autonomousController.autonomousAssist();
         //[distance to go left/right, amount to move neck, distance from target, ready to shoot?]
         if (autonomousAssistOutput[3] == 1.0) {
           turret.stopActuator();
           drive.stopDrive();
+          turret.feed();
           turret.shoot(autonomousAssistOutput[2]);
         } else {
           drive.drive(autonomousAssistOutput[0]); //how to distinguish between moving left and right... negative distance?

@@ -30,15 +30,15 @@ public class AutonomousController extends AgencySystem {
     private double netAngle;
 
     //distances in inches
+    private final double LIMELIGHT_Y_OFFSET = -12.0;
     private final double LIMELIGHT_X_Y_THRESHOLD = 0.35; //change
     private final double MAX_DISTANCE_FROM_TARGET = 500.0;
     private final double MIN_DISTANCE_FROM_TARGET = 12.0;
-    private double limelightYThreshold;
     private boolean autonomousAssistInProgress;
 
     //constant heights for testing
     //note all measurements in inches
-    private final double TARGET_HEIGHT = 83.7;
+    private final double TARGET_HEIGHT = 83.7;//83.7 for outside target
     private final double LIMELIGHT_HEIGHT = 29.75;
     private final double HEIGHT_DIFFERENCE = Math.abs(TARGET_HEIGHT - LIMELIGHT_HEIGHT);
     private final double CAMERA_TO_FULCRUM = 13.5;
@@ -61,6 +61,7 @@ public class AutonomousController extends AgencySystem {
     private final double RANGE_OF_MOTION = 47.5;
     private final double POT_UPPER_BOUND = 1.00505;
     private final double POT_LOWER_BOUND = 0.9865;
+
 
     public AutonomousController(int potentiometerID, String name, boolean debug) {
         this.name = name;
@@ -91,7 +92,6 @@ public class AutonomousController extends AgencySystem {
         camVertical = camHorizontal = targetAngle = distanceHorizontal = 0.0;
 
         autonomousAssistInProgress = false;
-        limelightYThreshold = 5.0;
     }
 
     private void displayValues() {
@@ -108,6 +108,7 @@ public class AutonomousController extends AgencySystem {
             shuffleDebug("camVertical", camVertical);
             shuffleDebug("LimelightHOR", limelightHOR);
             shuffleDebug("LimelightVER", limelightVER);
+            shuffleDebug("IsAssisting", autonomousAssistInProgress);
         } else {
             shuffleDebug("DistanceToTarget", distanceToTarget);
             shuffleDebug("DistanceToMove", distanceHorizontal);
@@ -184,16 +185,16 @@ public class AutonomousController extends AgencySystem {
         //ans[0] = distanceHorizontal; old
 
         //sigmoid changes distance/angle to power input
-        ans[0] = sigmoid(limelightX);
-        ans[1] = sigmoid(limelightY); // is this correct?
-        ans[2] = sigmoid(distanceToTarget,0.75,0.117);
+        ans[0] = -1.0*sigmoid(limelightX);
+        ans[1] = sigmoid(limelightY-LIMELIGHT_Y_OFFSET); // is this correct?
+        ans[2] = sigmoid(distanceToTarget,0.75,0.117);//TODO: callibrate this estimation
         ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
 
         //two options: 1) change shooting power based on distance in shooter
         //2) change limelightY to be above the center and keep constant shooting power
         //i think #1 will be easier to implement, but we can try the other one too
-        if (ans[0] <= LIMELIGHT_X_Y_THRESHOLD && ans[1] <= LIMELIGHT_X_Y_THRESHOLD) {
-            autonomousAssistInProgress = false;
+        if (Math.abs(ans[0]) <= LIMELIGHT_X_Y_THRESHOLD && Math.abs(ans[1]) <= LIMELIGHT_X_Y_THRESHOLD) {
+            //autonomousAssistInProgress = false;
             ans[3] = 1.0;
         }
         //handle these cases later
