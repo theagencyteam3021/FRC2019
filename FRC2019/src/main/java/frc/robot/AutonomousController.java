@@ -22,6 +22,8 @@ public class AutonomousController extends AgencySystem {
     private double limelightX;
     private double limelightY;
     private double limelightA;
+    private double limelightHOR;
+    private double limelightVER;
 
     private double potentiometerNeckAngle;
     private double distanceToTarget;
