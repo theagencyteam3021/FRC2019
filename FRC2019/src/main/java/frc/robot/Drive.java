@@ -47,4 +47,13 @@ public class Drive extends AgencySystem {
     public void drive(double speed, double rotation) {
         drive.arcadeDrive(speed, rotation);
     }
+
+    public void drive(double speed) {
+        drive(speed, 0.0);
+    }
+
+    public void stopDrive() {
+        drive(0.0, 0.0);
+    }
+
 }

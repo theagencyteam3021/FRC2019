@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 import com.ctre.phoenix.motorcontrol.can.*;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import java.lang.Math;
 
 public class Turret extends AgencySystem {
     private WPI_TalonSRX shooter;
@@ -46,6 +47,11 @@ public class Turret extends AgencySystem {
         previousMoving = true;
     }
 
+    public void moveActuator(double angle) {
+        actuator.set(angle);
+        previousMoving = true;
+    }
+
     public void lowerActuator() {
         actuator.set(-0.5);
         previousMoving = true;
@@ -58,6 +64,10 @@ public class Turret extends AgencySystem {
 
     public void shoot() {
         shooter.set(-0.75);
+    }
+
+    public void shoot(double speed) {
+        shooter.set(-1 * Math.abs(speed));
     }
 
     public void stopShooting() {
