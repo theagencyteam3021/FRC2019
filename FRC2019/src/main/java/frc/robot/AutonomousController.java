@@ -22,8 +22,6 @@ public class AutonomousController extends AgencySystem {
     private double limelightX;
     private double limelightY;
     private double limelightA;
-    private double limelightHOR;
-    private double limelightVER;
 
     private double potentiometerNeckAngle;
     private double distanceToTarget;
@@ -121,6 +119,7 @@ public class AutonomousController extends AgencySystem {
 
     private double sigmoid(double input) {
         return sigmoid(input,0.75,0.5);
+
     }
 
     //Gets distance to target according to limelight
@@ -215,7 +214,6 @@ public class AutonomousController extends AgencySystem {
         limelightVER = table.getEntry("tshort").getDouble(0);
 
         getLimelightDistance(actuatorPreviouslyMoving);
-        getTargetAngle();
         displayValues();
     }
 
