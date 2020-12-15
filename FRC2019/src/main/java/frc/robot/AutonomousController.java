@@ -196,7 +196,7 @@ public class AutonomousController extends AgencySystem {
     }
 
     private void turnAngle(double angle) {
-        turnPower = sigmoid(angle);
+        turnPower = sigmoid(angle,1.0,0.07);//This might be negative
         drivePower = 0;
 
     }
