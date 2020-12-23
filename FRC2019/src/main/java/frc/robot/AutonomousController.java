@@ -179,12 +179,14 @@ public class AutonomousController extends AgencySystem {
 
     private double checkAngleSign(double initialAngle) {
         if (checkAngleSignIterations < 15) {
-            drivePower = 1.0;
-            turnPower = 0.0;
+            drivePower = 0.0;
+            turnPower = 1.0;
             angleSign = 0;
             checkAngleSignIterations++;
 
         } else{
+            turnPower = 0.0;
+            drivePower = 0.0;
             if (getTargetAngle() > initialAngle) {
                 angleSign = -1.0; //this might be backwards
             } else {
@@ -234,8 +236,9 @@ public class AutonomousController extends AgencySystem {
             }
         }
 
-    
-        ans[0] =drivePower;
+        ans[0]= 0.0;
+        //Uncomment once turning is working well.
+        //ans[0] = drivePower;
         ans[1] = turnPower;
         ans[2] = sigmoid(limelightY - LIMELIGHT_Y_OFFSET);
         ans[3] = 0;
