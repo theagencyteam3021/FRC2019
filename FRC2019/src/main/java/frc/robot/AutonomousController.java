@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
-
 //limelight stuff
 import edu.wpi.first.networktables.NetworkTable;
 //import edu.wpi.first.networktables.NetworkTableEntry;
@@ -24,16 +23,20 @@ public class AutonomousController extends AgencySystem {
     private double limelightA;
     private double limelightHOR;
     private double limelightVER;
+    private double limelightV;
+    private double limelightS;
 
     private double potentiometerNeckAngle;
     private double distanceToTarget;
     private double netAngle;
 
     //distances in inches
+    private final double LIMELIGHT_X_THRESHOLD = 18.0;
     private final double LIMELIGHT_Y_OFFSET = -12.0;
-    private final double LIMELIGHT_X_Y_THRESHOLD = 0.35; //change
-    private final double MAX_DISTANCE_FROM_TARGET = 500.0;
-    private final double MIN_DISTANCE_FROM_TARGET = 12.0;
+    private final double LIMELIGHT_X_Y_THRESHOLD = 0.35;
+    private final double ANGLE_THRESHOLD = 5.0;
+   // private final double MAX_DISTANCE_FROM_TARGET = 500.0;
+   // private final double MIN_DISTANCE_FROM_TARGET = 12.0;
     private boolean autonomousAssistInProgress;
 
     //constant heights for testing
@@ -61,6 +64,13 @@ public class AutonomousController extends AgencySystem {
     private final double RANGE_OF_MOTION = 47.5;
     private final double POT_UPPER_BOUND = 1.00505;
     private final double POT_LOWER_BOUND = 0.9865;
+
+    private double checkAngleSignIterations = 0;
+    private double angleSign = 0;
+    private double cachedAngle = 0;
+
+    private double turnPower;
+    private double drivePower;
 
 
     public AutonomousController(int potentiometerID, String name, boolean debug) {
@@ -96,6 +106,7 @@ public class AutonomousController extends AgencySystem {
 
     private void displayValues() {
         if (debug) {
+            shuffleDebug("LimelightV", limelightV);
             shuffleDebug("LimelightX", limelightX);
             shuffleDebug("LimelightY", limelightY);
             shuffleDebug("LimelightArea", limelightA);
@@ -109,6 +120,7 @@ public class AutonomousController extends AgencySystem {
             shuffleDebug("LimelightHOR", limelightHOR);
             shuffleDebug("LimelightVER", limelightVER);
             shuffleDebug("IsAssisting", autonomousAssistInProgress);
+            shuffleDebug("LimelightS", limelightS);
         } else {
             shuffleDebug("DistanceToTarget", distanceToTarget);
             shuffleDebug("DistanceToMove", distanceHorizontal);
@@ -121,7 +133,6 @@ public class AutonomousController extends AgencySystem {
 
     private double sigmoid(double input) {
         return sigmoid(input,0.75,0.5);
-
     }
 
     //Gets distance to target according to limelight
@@ -129,9 +140,6 @@ public class AutonomousController extends AgencySystem {
     //boolean is used to optimize the queue and make sure the rolling average
     //doesn't get too delayed when unnecessary
     private double getLimelightDistance(boolean actuatorPreviouslyMoving) {
-        limelightX = table.getEntry("tx").getDouble(0);
-        limelightY = table.getEntry("ty").getDouble(0);
-        limelightA = table.getEntry("ta").getDouble(0);
         potentiometerNeckAngle = actuatorPotentiometer.get();
         if (!actuatorPreviouslyMoving) {
             potNeckAngleAverager.add(potentiometerNeckAngle);
@@ -149,9 +157,8 @@ public class AutonomousController extends AgencySystem {
             potNeckAngleSize = 0;
             potNeckAngleSum = 0;
         }
-
         netAngle = limelightY + avgPotNeckAngle;
-        if (limelightY == 0.0)
+        if (limelightV == 0.0)
             return distanceToTarget;
 
         distanceToTarget = HEIGHT_DIFFERENCE - (CAMERA_TO_FULCRUM * Math.sin(Math.toRadians(avgPotNeckAngle)));
@@ -160,16 +167,45 @@ public class AutonomousController extends AgencySystem {
         return distanceToTarget;
     }
 
-    private double getTargetAngle() {
+    /*private double getTargetAngle() {
         camVertical = TARGET_VERTICAL * Math.cos(Math.toRadians(netAngle));
         camHorizontal = limelightHOR * (camVertical / limelightVER);
 
         //Because we're dealing with arccos here, the targetAngle could be negative.
-        //FIX: Move the robot a direction, and see how the angle changes.
-        targetAngle = Math.toDegrees(Math.acos(camHorizontal / TARGET_HORIZONTAL)) + limelightX;
+        //FIX: not this Move the robot a direction, and see how the angle changes.
+        double horizontalRatio = Math.min(camHorizontal / TARGET_HORIZONTAL,1.0);
+        targetAngle = Math.toDegrees(Math.acos(horizontalRatio)) + limelightX;
         distanceHorizontal = distanceToTarget * Math.sin(Math.toRadians(targetAngle-limelightX));
         return (targetAngle);
+    }*/
+    private double getAngleFromSkew(double skew) {
+        if ( skew > -1.0*ANGLE_THRESHOLD || skew < -90.0+ANGLE_THRESHOLD) {
+            return 0.0;
+        }
+        else if (skew < -45.0) {
+            return 90.0+skew;
+        }
+        return skew;
     }
+
+    /*private double checkAngleSign(double initialAngle) {
+        if (checkAngleSignIterations < 5) {
+            drivePower = 0.0;
+            turnPower = 0.3;
+            angleSign = 0;
+            checkAngleSignIterations++;
+
+        } else{
+            turnPower = 0.0;
+            drivePower = 0.0;
+            if (getTargetAngle() < initialAngle) {
+                angleSign = 1.0; //this might be backwards
+            } else {
+                angleSign = -1.0; 
+            }
+        }
+        return angleSign;
+    }*/
 
     public void cancelAutonomousAssist() {
         autonomousAssistInProgress = false;
@@ -178,23 +214,57 @@ public class AutonomousController extends AgencySystem {
     public boolean autonomousAssistInProgress() {
         return autonomousAssistInProgress;
     }
+    /*public void autonomousAssistInit() {
+        checkAngleSignIterations = 0;
+        angleSign = 0;
+        cachedAngle = getTargetAngle();
+    }*/
 
-    //@return double array [distance to go left/right, amount to move neck, distance from target, ready to shoot?]
+    public double[] seekTarget() {
+        double[] ans = new double[1];
+        if (limelightX < 0) ans[0] = 0.5;
+        else ans[0] = -0.5;
+        return ans;
+    }
+
+    //@return double array [power to go left/right, power to turn, power to move head, ready to shoot, distance to target]
     public double[] autonomousAssist() {
-        double[] ans = new double[4];
+        double[] ans = new double[5];
         autonomousAssistInProgress = true;
         //ans[0] = distanceHorizontal; old
+        if(limelightV == 0 || Math.abs(limelightX) > LIMELIGHT_X_THRESHOLD) {
+            return seekTarget();
+        }
+        //Stops the aiming assist if we can't see the target.
+        //TODO: Add seeking, and logic to figure out how to move if we can't see the target
 
+        //[distance to go left/right, amount to move neck, distance from target, ready to shoot?]
         //sigmoid changes distance/angle to power input
-        ans[0] = -1.0*sigmoid(limelightX);
-        ans[1] = sigmoid(limelightY-LIMELIGHT_Y_OFFSET); // is this correct?
-        ans[2] = sigmoid(distanceToTarget,0.75,0.117);//TODO: callibrate this estimation
-        ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
+        //ans[0] = -1.0*sigmoid(limelightX);
+        //ans[1] = sigmoid(limelightY-LIMELIGHT_Y_OFFSET); // is this correct?
+        //ans[2] = sigmoid(distanceToTarget,0.75,0.117);
+        //ans[3] = 0.0; // 0 if not ready to shoot, 1 if ready, -1 if needs to move forward/backwards
+    
+        turnPower = sigmoid(targetAngle, 0.75, 0.2);
+        if(Math.abs(targetAngle) == 0.0) {
+            drivePower = -1.0*sigmoid(limelightX);
+        }
+        else drivePower = 0.0;
+        
+
+        //ans[0]= 0.0;
+        //Uncomment once turning is working well.
+        ans[0] = drivePower;
+        ans[1] = turnPower;
+        ans[2] = sigmoid(limelightY - LIMELIGHT_Y_OFFSET);
+        ans[3] = 0;
+        ans[4] = sigmoid(distanceToTarget,0.75,0.117);
+
 
         //two options: 1) change shooting power based on distance in shooter
         //2) change limelightY to be above the center and keep constant shooting power
         //i think #1 will be easier to implement, but we can try the other one too
-        if (Math.abs(ans[0]) <= LIMELIGHT_X_Y_THRESHOLD && Math.abs(ans[1]) <= LIMELIGHT_X_Y_THRESHOLD) {
+        if (Math.abs(ans[0]) <= LIMELIGHT_X_Y_THRESHOLD && Math.abs(ans[2]) <= LIMELIGHT_X_Y_THRESHOLD && turnPower == 0) {
             //autonomousAssistInProgress = false;
             ans[3] = 1.0;
         }
@@ -209,14 +279,20 @@ public class AutonomousController extends AgencySystem {
     //Updates and displays sensor values during teleop
     //@param actuatorPreviouslyMoving from turret subsystem
     public void teleopPeriodic(boolean actuatorPreviouslyMoving) {
+        limelightV = table.getEntry("tv").getDouble(0);
+        if (limelightV != 0.0) {
         limelightX = table.getEntry("tx").getDouble(0);
         limelightY = table.getEntry("ty").getDouble(0);
         limelightA = table.getEntry("ta").getDouble(0);
         limelightHOR = table.getEntry("tlong").getDouble(0);
         limelightVER = table.getEntry("tshort").getDouble(0);
+        limelightS = table.getEntry("ts").getDouble(0);
+        targetAngle = getAngleFromSkew(limelightS);
+        }
 
         getLimelightDistance(actuatorPreviouslyMoving);
         displayValues();
+        //getTargetAngle();
     }
 
 }
