@@ -193,8 +193,7 @@ public class Robot extends TimedRobot {
         drive.stopDrive();
         turret.stopFeeder();
         turret.stopShooting();
-        //DriverInputPrimary.setRumble(RumbleType.kLeftRumble, 1.0);
-        //DriverInputPrimary.setRumble(RumbleType.kRightRumble, 1.0);
+        
         
       } else {
         double[] autonomousAssistOutput = autonomousController.autonomousAssist();

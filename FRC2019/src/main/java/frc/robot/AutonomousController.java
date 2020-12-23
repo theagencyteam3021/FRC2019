@@ -31,6 +31,7 @@ public class AutonomousController extends AgencySystem {
     private double netAngle;
 
     //distances in inches
+    private final double LIMELIGHT_X_THRESHOLD = 18.0;
     private final double LIMELIGHT_Y_OFFSET = -12.0;
     private final double LIMELIGHT_X_Y_THRESHOLD = 0.35;
     private final double ANGLE_THRESHOLD = 5.0;
@@ -231,7 +232,7 @@ public class AutonomousController extends AgencySystem {
         double[] ans = new double[5];
         autonomousAssistInProgress = true;
         //ans[0] = distanceHorizontal; old
-        if(limelightV == 0) {
+        if(limelightV == 0 || Math.abs(limelightX) > LIMELIGHT_X_THRESHOLD) {
             return seekTarget();
         }
         //Stops the aiming assist if we can't see the target.
